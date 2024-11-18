@@ -1,6 +1,10 @@
 cs4rp
 fttenv
 results
+test
+data
+Llama-3.1-8B-Instruct
+llama-3.1-8B-Instruct-Math
 hf_ak.txt
 llama-2-7b
 llama-2-7b-merged

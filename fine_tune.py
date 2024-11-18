@@ -3,18 +3,19 @@ before running, run nvidia-smi in the terminal to see what gpu's are free in you
 """
 # setting up script
 import os
-os.environ["CUDA_VISIBLE_DEVICES"] = "4,5"
+os.environ["CUDA_VISIBLE_DEVICES"] = "6,7"
 
 # imports
 import torch
+from datasets import load_from_disk, Dataset
 from transformers import AutoTokenizer, AutoModelForCausalLM, TrainingArguments, BitsAndBytesConfig
 from trl import SFTTrainer
 from peft import LoraConfig, get_peft_model
 
 
 # load model
-base_model_name = "llama-3.1-8B-Instruct"
-new_model_name = "llama-3.1-8B-Instruct-ML"
+base_model_name = "Llama-3.1-8B-Instruct"
+new_model_name = "llama-3.1-8B-Instruct-Math"
 
 # load tokenizer
 llama_tokenizer = AutoTokenizer.from_pretrained(base_model_name, trust_remote_code=True)
@@ -31,7 +32,11 @@ base_model.config.use_cache = False
 base_model.config.pretraining_tp = 1
 
 # load data
-data_name = "reformatted data here"
+data_path = "data/Mathematics,1970-2002"
+dataset = load_from_disk(data_path)
+dataset = dataset[:80]["text"]
+dataset = [{"text": text} for text in dataset]
+dataset = Dataset.from_list(dataset)
 
 # Training Params
 train_params = TrainingArguments(
@@ -70,7 +75,7 @@ model.print_trainable_parameters()
 # Trainer with LoRA configuration
 fine_tuning = SFTTrainer(
     model=base_model,
-    train_dataset=data_name,
+    train_dataset=dataset,
     peft_config=peft_parameters,
     dataset_text_field="text",
     tokenizer=llama_tokenizer,

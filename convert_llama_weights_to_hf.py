@@ -12,6 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+"""
+python convert_llama_weights_to_hf.py \
+    --input_dir /Llama-3.1-8B-Intstruct --model_size 8B --output_dir .
+"""
+
+
 import argparse
 import gc
 import json
