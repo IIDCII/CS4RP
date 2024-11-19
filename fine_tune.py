@@ -3,7 +3,7 @@ before running, run nvidia-smi in the terminal to see what gpu's are free in you
 """
 # setting up script
 import os
-os.environ["CUDA_VISIBLE_DEVICES"] = "6,7"
+os.environ["CUDA_VISIBLE_DEVICES"] = "5,6"
 
 # imports
 import torch
@@ -35,26 +35,17 @@ print("loading data")
 # load data
 data_path = "data/Mathematics,1970-2002"
 dataset = load_from_disk(data_path)
-dataset = dataset[:500]["text"]
+dataset = dataset[:10000]["text"]
 dataset = [{"text": text} for text in dataset]
 dataset = Dataset.from_list(dataset)
 print("finished loading")
 
-
-# Print max sequence length in tokens
-max_len = max(len(llama_tokenizer.encode(text["text"])) for text in dataset)
-print(f"Max sequence length: {max_len} tokens")
-
-# Check if any sequences exceed model's context window
-context_window = base_model.config.max_position_embeddings
-print(f"Sequences exceeding context window: {sum(1 for text in dataset if len(llama_tokenizer.encode(text['text'])) > context_window)}")
-
 # Training Params
 train_params = TrainingArguments(
     output_dir="./results_modified",
-    num_train_epochs=3,
+    num_train_epochs=2,
     per_device_train_batch_size=1,
-    gradient_accumulation_steps=8,
+    gradient_accumulation_steps=4,
     optim="paged_adamw_32bit",
     save_steps=50,
     logging_steps=50,
@@ -66,7 +57,7 @@ train_params = TrainingArguments(
     max_steps=-1,
     warmup_ratio=0.1,
     group_by_length=True,
-    lr_scheduler_type="constant",
+    lr_scheduler_type="cosine",
     report_to="tensorboard",
 )
 

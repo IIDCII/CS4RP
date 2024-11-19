@@ -29,8 +29,9 @@ from typing import List, Optional
 import torch.multiprocessing as mp
 
 # Model and tokenizer names
-base_model_name = "llama-3.1-8B-Instruct"
-altered = "llama-3.1-8B-Instruct-Math"
+base_model_name = "Llama-3.1-8B-Instruct"
+
+altered = "llama-3.1-8B-Instruct-Math2"
 
 base_model = AutoModelForCausalLM.from_pretrained(
     base_model_name,
@@ -43,6 +44,8 @@ base_model = AutoModelForCausalLM.from_pretrained(
 model = PeftModel.from_pretrained(base_model, altered)
 model = model.merge_and_unload()
 
+# model = base_model
+
 # Reload tokenizer to save it
 tokenizer = AutoTokenizer.from_pretrained(base_model_name, trust_remote_code=True)
 tokenizer.pad_token = tokenizer.eos_token
@@ -50,84 +53,52 @@ tokenizer.padding_side = "right"
 
 # loading the data
 data_name = "cais/mmlu"
-subset_name = "high_school_mathematics"
+subset_name = "abstract_algebra"
 
-dataset = load_dataset(data_name, subset_name, split = "train")
+dataset = load_dataset(data_name, subset_name, split = "test")
 
 
 # model and tokenizer will be the merged version
 # is this not the same tokenizer used in the first place
 
+correct = 0
+total = 0
+
+for item in dataset:
+    if total%50 == 0:
+        print(correct, " correct out of ", total)
+    question = item['question']
+    choices = item['choices']
+    answer = item['answer']
+
+    prompt = (
+            f"Question: {question}\n\nChoices:\n"
+            f"A. {choices[0]}\nB. {choices[1]}\nC. {choices[2]}\nD. {choices[3]}\n"
+            f"Do not explain and give the answer with strictly one letter from options A, B, C, or D.\nAnswer:"
+        )
 
 
-def calculate_perplexity(model, tokenizer, text, max_length=300):
-    """
-    Calculate the perplexity of a text using a language model.
-    
-    Args:
-        model: The language model
-        tokenizer: The tokenizer
-        text: Input text to evaluate
-        max_length: Maximum sequence length to process
-        
-    Returns:
-        float: The perplexity score
-    """
-    # Encode the text
-    encodings = tokenizer(text, return_tensors="pt", truncation=True, max_length=max_length)
-    
-    # Get input IDs and create target labels (shifted by 1)
-    input_ids = encodings.input_ids
-    target_ids = input_ids.clone()
-    
-    # Calculate loss with no gradient tracking
+    inputs = tokenizer(prompt, return_tensors="pt", truncation=True)
+
     with torch.no_grad():
-        outputs = model(input_ids, labels=target_ids)
-        neg_log_likelihood = outputs.loss
+        outputs = model.generate(
+            **inputs,
+            max_new_tokens=1,
+            temperature = 0.1,
+            pad_token_id=tokenizer.eos_token_id,
+            bad_words_ids=[[tokenizer.encode(" ")[0]], [tokenizer.encode("The")[0]], [tokenizer.encode("Step")[0]], [tokenizer.encode("Let")[0]]]
+        )
     
-    # Calculate perplexity
-    ppl = torch.exp(neg_log_likelihood)
-    loss = neg_log_likelihood
-    return ppl.item(), loss
-
-def evaluate_dataset(model, tokenizer, texts):
-    """
-    Calculate average perplexity across multiple texts.
-    
-    Args:
-        model: The language model
-        tokenizer: The tokenizer
-        texts: List of texts to evaluate
-        
-    Returns:
-        float: Average perplexity across all texts
-    """
-    perplexities = []
-    total_loss = []
-    for text in texts:
-        try:
-            ppl_and_loss = calculate_perplexity(model, tokenizer, text)
-            ppl = ppl_and_loss[0]
-            loss = ppl_and_loss[1]
-
-            perplexities.append(ppl)
-            total_loss.append(loss)
-
-        except Exception as e:
-            print(f"Error processing text: {e}")
-            continue
-    
-    return perplexities, total_loss
-
-model = AutoModelForCausalLM.from_pretrained(
-    model,
-    torch_dtype=torch.float16,
-    # need to 
-    device_map="auto",
-)
+    pred = tokenizer.decode(outputs[0][-1:], skip_special_tokens=True).strip()
+            
+    # Convert prediction to index (A=0, B=1, etc.)
+    try:
+        pred_idx = ord(pred.upper()) - ord('A')
+        if pred_idx == answer:
+            correct += 1
+    except:
+        pass
+    total += 1
 
 
-ppl_and_loss = evaluate_dataset(model, tokenizer, dataset)
-
-ppl = ppl_and_loss[0]
-loss = ppl_and_loss[1]
+print ("high school math MMLU score: ", (correct/total) * 100)
