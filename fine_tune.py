@@ -3,7 +3,7 @@ before running, run nvidia-smi in the terminal to see what gpu's are free in you
 """
 # setting up script
 import os
-os.environ["CUDA_VISIBLE_DEVICES"] = "5,6"
+os.environ["CUDA_VISIBLE_DEVICES"] = "6,7"
 
 # imports
 import torch
@@ -33,7 +33,7 @@ base_model.config.pretraining_tp = 1
 
 print("loading data")
 # load data
-data_path = "data/Mathematics,1970-2002"
+data_path = "data/Philosophy,1970-2022"
 dataset = load_from_disk(data_path)
 dataset = dataset[:10000]["text"]
 dataset = [{"text": text} for text in dataset]
@@ -65,7 +65,7 @@ from peft import get_peft_model
 # LoRA Config
 # reduce rank r if you're running out of vram
 peft_parameters = LoraConfig(
-    r=8,
+    r=512,
     lora_alpha=16,
     lora_dropout=0.1,
     bias="none",

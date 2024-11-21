@@ -1,7 +1,7 @@
 # important to run this first or else GPU allocation will not work
 import os
 # set the GPUs
-os.environ["CUDA_VISIBLE_DEVICES"] = "4,5"
+os.environ["CUDA_VISIBLE_DEVICES"] = "6,7"
 # setting for vllm inference so that it can run in parallel
 os.environ["VLLM_WORKER_MULTIPROC_METHOD"] = "spawn"
 
@@ -53,7 +53,7 @@ tokenizer.padding_side = "right"
 
 # loading the data
 data_name = "cais/mmlu"
-subset_name = "abstract_algebra"
+subset_name = "high_school_microeconomics"
 
 dataset = load_dataset(data_name, subset_name, split = "test")
 
