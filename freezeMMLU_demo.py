@@ -66,10 +66,13 @@ class NeuronManipulator:
 
 manipulator = NeuronManipulator(model_name = "Llama-3.1-8B-Instruct")
 
-for layers in topk_act:
-    neurons_to_disable = layers
-    manipulator.disable_neurons(layers, layers)
+for i in range(len(topk_act)):
+    # neurons_to_disable = list(topk_act.items())[i][1]['indices']
+    # just testing the base with nothing deleted
+    neurons_to_disable = []
+    layer_name = list(topk_act.items())[i][0]
+    manipulator.disable_neurons(layer_name, neurons_to_disable)
 
-prompt = "Hello, how are you"
+prompt = "Hello, how are you?"
 output = manipulator.generate_text(prompt)
 print ("generated the following with disabling the topk activated neurons:\n ", output)
