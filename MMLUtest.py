@@ -41,10 +41,10 @@ base_model = AutoModelForCausalLM.from_pretrained(
     device_map="auto"
 )
 
-model = PeftModel.from_pretrained(base_model, altered)
-model = model.merge_and_unload()
+# model = PeftModel.from_pretrained(base_model, altered)
+# model = model.merge_and_unload()
 
-# model = base_model
+model = base_model
 
 # Reload tokenizer to save it
 tokenizer = AutoTokenizer.from_pretrained(base_model_name, trust_remote_code=True)
@@ -53,7 +53,7 @@ tokenizer.padding_side = "right"
 
 # loading the data
 data_name = "cais/mmlu"
-subset_name = "high_school_microeconomics"
+subset_name = "high_school_mathematics"
 
 dataset = load_dataset(data_name, subset_name, split = "test")
 
@@ -89,6 +89,7 @@ for item in dataset:
             bad_words_ids=[[tokenizer.encode(" ")[0]], [tokenizer.encode("The")[0]], [tokenizer.encode("Step")[0]], [tokenizer.encode("Let")[0]]]
         )
     
+    print (tokenizer.decode(outputs[0][-1:], skip_special_tokens=True).strip())
     pred = tokenizer.decode(outputs[0][-1:], skip_special_tokens=True).strip()
             
     # Convert prediction to index (A=0, B=1, etc.)
