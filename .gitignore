@@ -13,3 +13,4 @@ llama-2-7b-enhanced
 llama-2-7b-hf
 results_modified
 output.log
+topk_act.pkl

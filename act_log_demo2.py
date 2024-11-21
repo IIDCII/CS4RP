@@ -8,6 +8,7 @@ import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
 import numpy as np
 import matplotlib.pyplot as plt
+import pickle
 
 class ActivationAnalyzer:
     def __init__(self, model_name):
@@ -72,3 +73,10 @@ for layer_name, data in results.items():
     # Visualize activations for this layer
     analyzer.visualize_activations(results, layer_name)
 
+# store all of the results
+
+with open('topk_act.pkl', 'wb') as f:
+    pickle.dump(results, f)
+
+with open('topk_act.pkl', 'rb') as f:
+    loaded_dict = pickle.load(f)
