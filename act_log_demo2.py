@@ -26,7 +26,7 @@ class ActivationAnalyzer:
             if "mlp" in name or "attention" in name:
                 module.register_forward_hook(self._activation_hook(name))
     
-    def analyze_text(self, text, top_k=10):
+    def analyze_text(self, text, top_k=3):
         inputs = self.tokenizer(text, return_tensors="pt")
         self.activations.clear()
         
@@ -71,3 +71,4 @@ for layer_name, data in results.items():
     
     # Visualize activations for this layer
     analyzer.visualize_activations(results, layer_name)
+
