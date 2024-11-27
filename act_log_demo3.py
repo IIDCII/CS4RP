@@ -6,6 +6,7 @@ os.environ["VLLM_WORKER_MULTIPROC_METHOD"] = "spawn"
 
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
+from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training, PeftModel
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle
@@ -33,7 +34,17 @@ class ActivationAnalyzer:
         self.activations.clear()
         
         for text in prompts:
-            inputs = self.tokenizer(text, return_tensors="pt")
+            # format the prompt
+            question = text['question']
+            choices = text['choices']
+
+            prompt = (
+            f"Question: {question}\n\nChoices:\n"
+            f"A. {choices[0]}\nB. {choices[1]}\nC. {choices[2]}\nD. {choices[3]}\n"
+            f"Do not explain and give the answer with strictly one letter from options A, B, C, or D.\nAnswer:"
+            )
+
+            inputs = self.tokenizer(prompt, return_tensors="pt")
             
             with torch.no_grad():
                 outputs = self.model(**inputs)
@@ -62,18 +73,23 @@ class ActivationAnalyzer:
 
 # removes all values from dict1 that's in dict2 to isolate the the most used transferred 
 def remove_common_values(dict1, dict2):
-   total_removed = 0
-   for name in dict1:
-       if name in dict2:
-           original_len = len(dict1[name])
-           dict1[name] = [x for x in dict1[name] if x not in dict2[name]]
-           removed = original_len - len(dict1[name])
-           total_removed += removed
-   print(f"Total values removed: {total_removed}")
-   return dict1
+    print ("total amount of weights: ", sum(len(d['indices']) for d in dict1.values()))
+    removing = 0
+    for name in dict1:
+        if name in dict2:
+            indices_to_remove = set(dict2[name]['indices']) & set(dict1[name]['indices'])
+            removing += len(indices_to_remove)
+            dict1[name]['values'] = [v for i, v in zip(dict1[name]['indices'], dict1[name]['values']) 
+                                    if i not in indices_to_remove]
+            dict1[name]['indices'] = [i for i in dict1[name]['indices'] if i not in indices_to_remove]
+    
+    print ("Removing ",removing, " from the total")
+    print ("final number of weights: ", sum(len(d['indices']) for d in dict1.values()))
+    return dict1
 
 # loading the model
-base_model_name = "Llama-3.1-8B-Instruct-Math2"
+base_model_name = "Llama-3.1-8B-Instruct"
+altered = "llama-3.1-8B-Instruct-Math2"
 
 base_model = AutoModelForCausalLM.from_pretrained(
     base_model_name,
@@ -83,17 +99,14 @@ base_model = AutoModelForCausalLM.from_pretrained(
     device_map="auto"
 )
 
-# model = PeftModel.from_pretrained(base_model, altered)
-# model = model.merge_and_unload()
-
-model = base_model
+# merging the model
+model = PeftModel.from_pretrained(base_model, altered)
+model = model.merge_and_unload()
 
 # Reload tokenizer to save it
 tokenizer = AutoTokenizer.from_pretrained(base_model_name, trust_remote_code=True)
 tokenizer.pad_token = tokenizer.eos_token
 tokenizer.padding_side = "right"
-
-
 
 # loading the data
 data_name = "cais/mmlu"
@@ -101,32 +114,21 @@ base_subset_name = "philosophy"
 alt_subset_name = "high_school_mathematics"
 
 base_dataset = load_dataset(data_name, base_subset_name, split = "test")
-alt_dataset = load_dataset(data_name, base_subset_name, split = "test")
-
-
+alt_dataset = load_dataset(data_name, alt_subset_name, split = "test")
 
 
 # active neuron eval
 analyzer = ActivationAnalyzer(model, tokenizer)
-
 # fined tuned and base knowledge
-ftk = analyzer.analyze_text(base_dataset)
-# fine tuned, base and transferred knowledge
-tk = analyzer.analyze_text(alt_dataset)
+ftk = analyzer.analyze_text(base_dataset, top_k=3)
+
+tk = analyzer.analyze_text(alt_dataset, top_k=3)
+
+if ftk == tk:
+    print ("values are exactly the same")
 
 # remove all of the neurons that show up in ftk from tk
 results = remove_common_values(tk,ftk)
-
-
-# Print top activated neurons for each layer
-for layer_name, data in results.items():
-    print(f"\nLayer: {layer_name}")
-    print("Top activated neurons:")
-    for idx, value in zip(data["indices"], data["values"]):
-        print(f"Neuron {idx}: {value:.4f}")
-    
-    # Visualize activations for this layer
-    analyzer.visualize_activations(results, layer_name)
 
 # store all of the results
 with open('topk_act.pkl', 'wb') as f:
