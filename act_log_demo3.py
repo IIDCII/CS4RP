@@ -9,11 +9,12 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle
+from datasets import load_dataset
 
 class ActivationAnalyzer:
-    def __init__(self, model_name):
-        self.tokenizer = AutoTokenizer.from_pretrained(model_name, trust_remote_code=True)
-        self.model = AutoModelForCausalLM.from_pretrained(model_name, trust_remote_code=True)
+    def __init__(self, model, tokenizer):
+        self.tokenizer = tokenizer
+        self.model = model
         self.activations = {}
         self._register_hooks()
     
@@ -24,18 +25,19 @@ class ActivationAnalyzer:
     
     def _register_hooks(self):
         for name, module in self.model.named_modules():
-            # change the following to change the layers that are considered
-            if "mlp" in name or "attention" in name:
+            # eval specific layers
+            if "mlp." in name or "q_proj" in name:
                 module.register_forward_hook(self._activation_hook(name))
     
-    def analyze_text(self, text, top_k=3):
-        inputs = self.tokenizer(text, return_tensors="pt")
+    def analyze_text(self, prompts, top_k=3):
         self.activations.clear()
         
-        # this should take roughly the same time if reconfiged
-        with torch.no_grad():
-            outputs = self.model(**inputs)
-        
+        for text in prompts:
+            inputs = self.tokenizer(text, return_tensors="pt")
+            
+            with torch.no_grad():
+                outputs = self.model(**inputs)
+            
         results = {}
         for name, activation in self.activations.items():
             # Calculate mean activation per neuron
@@ -58,14 +60,63 @@ class ActivationAnalyzer:
         plt.ylabel("Mean Activation")
         plt.show()
 
+# removes all values from dict1 that's in dict2 to isolate the the most used transferred 
+def remove_common_values(dict1, dict2):
+   total_removed = 0
+   for name in dict1:
+       if name in dict2:
+           original_len = len(dict1[name])
+           dict1[name] = [x for x in dict1[name] if x not in dict2[name]]
+           removed = original_len - len(dict1[name])
+           total_removed += removed
+   print(f"Total values removed: {total_removed}")
+   return dict1
+
+# loading the model
+base_model_name = "Llama-3.1-8B-Instruct-Math2"
+
+base_model = AutoModelForCausalLM.from_pretrained(
+    base_model_name,
+    low_cpu_mem_usage=True,
+    return_dict=True,
+    torch_dtype=torch.float16,
+    device_map="auto"
+)
+
+# model = PeftModel.from_pretrained(base_model, altered)
+# model = model.merge_and_unload()
+
+model = base_model
+
+# Reload tokenizer to save it
+tokenizer = AutoTokenizer.from_pretrained(base_model_name, trust_remote_code=True)
+tokenizer.pad_token = tokenizer.eos_token
+tokenizer.padding_side = "right"
 
 
 
-analyzer = ActivationAnalyzer(model_name = "Llama-3.1-8B-Instruct")
-text = "Hello, how are you?"
-results = analyzer.analyze_text(text)
+# loading the data
+data_name = "cais/mmlu"
+base_subset_name = "philosophy"
+alt_subset_name = "high_school_mathematics"
 
-# turning this off to look at all of the layer names
+base_dataset = load_dataset(data_name, base_subset_name, split = "test")
+alt_dataset = load_dataset(data_name, base_subset_name, split = "test")
+
+
+
+
+# active neuron eval
+analyzer = ActivationAnalyzer(model, tokenizer)
+
+# fined tuned and base knowledge
+ftk = analyzer.analyze_text(base_dataset)
+# fine tuned, base and transferred knowledge
+tk = analyzer.analyze_text(alt_dataset)
+
+# remove all of the neurons that show up in ftk from tk
+results = remove_common_values(tk,ftk)
+
 
 # Print top activated neurons for each layer
 for layer_name, data in results.items():
@@ -76,7 +127,6 @@ for layer_name, data in results.items():
     
     # Visualize activations for this layer
     analyzer.visualize_activations(results, layer_name)
-
 
 # store all of the results
 with open('topk_act.pkl', 'wb') as f:

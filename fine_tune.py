@@ -3,7 +3,7 @@ before running, run nvidia-smi in the terminal to see what gpu's are free in you
 """
 # setting up script
 import os
-os.environ["CUDA_VISIBLE_DEVICES"] = "6,7"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0,7"
 
 # imports
 import torch
@@ -15,7 +15,7 @@ from peft import LoraConfig, get_peft_model
 
 # load model
 base_model_name = "Llama-3.1-8B-Instruct"
-new_model_name = "llama-3.1-8B-Instruct-Math2"
+new_model_name = "llama-3.1-8B-Instruct-Test"
 
 # load tokenizer
 llama_tokenizer = AutoTokenizer.from_pretrained(base_model_name, trust_remote_code=True)
@@ -35,7 +35,7 @@ print("loading data")
 # load data
 data_path = "data/Philosophy,1970-2022"
 dataset = load_from_disk(data_path)
-dataset = dataset[:10000]["text"]
+dataset = dataset[:1000]["text"]
 dataset = [{"text": text} for text in dataset]
 dataset = Dataset.from_list(dataset)
 print("finished loading")
