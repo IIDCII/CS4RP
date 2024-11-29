@@ -73,19 +73,19 @@ class NeuronManipulator:
                 )
 
 
-            inputs = tokenizer(prompt, return_tensors="pt", truncation=True)
+            inputs = self.tokenizer(prompt, return_tensors="pt", truncation=True)
 
             with torch.no_grad():
                 outputs = self.model.generate(
                     **inputs,
                     max_new_tokens=1,
                     temperature = 0.1,
-                    pad_token_id=tokenizer.eos_token_id,
-                    bad_words_ids=[[tokenizer.encode(" ")[0]], [tokenizer.encode("The")[0]], [tokenizer.encode("Step")[0]], [tokenizer.encode("Let")[0]]]
+                    pad_token_id=self.tokenizer.eos_token_id,
+                    bad_words_ids=[[self.tokenizer.encode(" ")[0]], [self.tokenizer.encode("The")[0]], [self.tokenizer.encode("Step")[0]], [self.tokenizer.encode("Let")[0]]]
                 )
             
-            print (tokenizer.decode(outputs[0][-1:], skip_special_tokens=True).strip())
-            pred = tokenizer.decode(outputs[0][-1:], skip_special_tokens=True).strip()
+            print (self.tokenizer.decode(outputs[0][-1:], skip_special_tokens=True).strip())
+            pred = self.tokenizer.decode(outputs[0][-1:], skip_special_tokens=True).strip()
                     
             # Convert prediction to index (A=0, B=1, etc.)
             try:
@@ -127,7 +127,7 @@ manipulator = NeuronManipulator(model,tokenizer)
 
 # loading the data
 data_name = "cais/mmlu"
-subset_name = "high_school_mathematics"
+subset_name = "philosophy"
 dataset = load_dataset(data_name, subset_name, split = "test")
 
 

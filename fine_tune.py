@@ -3,7 +3,7 @@ before running, run nvidia-smi in the terminal to see what gpu's are free in you
 """
 # setting up script
 import os
-os.environ["CUDA_VISIBLE_DEVICES"] = "0,7"
+os.environ["CUDA_VISIBLE_DEVICES"] = "7"
 
 # imports
 import torch
@@ -22,12 +22,25 @@ llama_tokenizer = AutoTokenizer.from_pretrained(base_model_name, trust_remote_co
 llama_tokenizer.pad_token = llama_tokenizer.eos_token
 llama_tokenizer.padding_side = "right"
 
+# Configure 4-bit quantization
+bnb_config = BitsAndBytesConfig(
+    load_in_4bit=True,
+    bnb_4bit_quant_type="nf4",
+    bnb_4bit_compute_dtype=torch.float16,
+    bnb_4bit_use_double_quant=True,
+)
+
 # init model
 base_model = AutoModelForCausalLM.from_pretrained(
     base_model_name,
-    torch_dtype=torch.float16,
+    # for 16 bit
+    # torch_dtype=torch.float16,
+
+    # for 4bit quant
+    quantization_config = bnb_config,
     device_map="auto",
 )
+
 base_model.config.use_cache = False
 base_model.config.pretraining_tp = 1
 
@@ -52,7 +65,8 @@ train_params = TrainingArguments(
     learning_rate=2e-5,
     weight_decay=0.05,
     fp16=False,
-    bf16=True,
+    # turn this on for 16 bit
+    bf16=False,
     max_grad_norm=1.0,
     max_steps=-1,
     warmup_ratio=0.1,
@@ -65,7 +79,8 @@ from peft import get_peft_model
 # LoRA Config
 # reduce rank r if you're running out of vram
 peft_parameters = LoraConfig(
-    r=512,
+    # change back to 512
+    r=4,
     lora_alpha=16,
     lora_dropout=0.1,
     bias="none",
@@ -81,7 +96,8 @@ fine_tuning = SFTTrainer(
     peft_config=peft_parameters,
     dataset_text_field="text",
     tokenizer=llama_tokenizer,
-    max_seq_length= None,
+    # CHANGE BACK TO NONE
+    max_seq_length= 128,
     args=train_params,
 )
 

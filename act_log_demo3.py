@@ -27,8 +27,8 @@ class ActivationAnalyzer:
     def _register_hooks(self):
         for name, module in self.model.named_modules():
             # eval specific layers
-            if "mlp." in name or "q_proj" in name:
-                module.register_forward_hook(self._activation_hook(name))
+            # if "mlp." in name or "q_proj" in name:
+            module.register_forward_hook(self._activation_hook(name))
     
     def analyze_text(self, prompts, top_k=3):
         self.activations.clear()
@@ -138,19 +138,19 @@ alt_dataset = load_dataset(data_name, alt_subset_name, split = "test")
 # active neuron eval
 analyzer = ActivationAnalyzer(model, tokenizer)
 # fined tuned and base knowledge
-ftk = analyzer.analyze_text(base_dataset, top_k=3)
+ftk = analyzer.analyze_text(base_dataset, top_k=1000)
 
-tk = analyzer.analyze_text(alt_dataset, top_k=3)
+tk = analyzer.analyze_text(alt_dataset, top_k=1000)
 
 if ftk == tk:
     print ("values are exactly the same")
 
 # change between merge and remove
-results = merge_indices(tk,ftk)
+results = remove_common_values(tk,ftk)
 
 # store all of the results
 with open('topk_act.pkl', 'wb') as f:
-    pickle.dump(results, f)
+    pickle.dump(ftk, f)
 
 with open('topk_act.pkl', 'rb') as f:
     loaded_dict = pickle.load(f)
