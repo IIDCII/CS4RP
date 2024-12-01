@@ -96,7 +96,7 @@ class NeuronManipulator:
                 pass
             total += 1
         
-        print ("high school math MMLU score: ", (correct/total) * 100)
+        print ("MMLU score: ", (correct/total) * 100)
 
 
 # may have to org into a class later on and call this from the outside
@@ -124,11 +124,19 @@ tokenizer.padding_side = "right"
 # this will act as the new model from this point
 manipulator = NeuronManipulator(model,tokenizer)
 
+print ("disabling neurons")
+# disable the neurons
+for i in range(len(topk_act)):
+    neurons_to_disable = list(topk_act.items())[i][1]['indices']
+    # just testing the base with nothing deleted
+    # neurons_to_disable = []
+    layer_name = list(topk_act.items())[i][0]
+    manipulator.disable_neurons(layer_name, neurons_to_disable)
+print ("disabling complete")
 
 # loading the data
 data_name = "cais/mmlu"
-subset_name = "philosophy"
+subset_name = "high_school_mathematics"
 dataset = load_dataset(data_name, subset_name, split = "test")
-
 
 manipulator.MMLU(dataset)

@@ -27,8 +27,8 @@ class ActivationAnalyzer:
     def _register_hooks(self):
         for name, module in self.model.named_modules():
             # eval specific layers
-            # if "mlp." in name or "q_proj" in name:
-            module.register_forward_hook(self._activation_hook(name))
+            if "mlp." in name:
+                module.register_forward_hook(self._activation_hook(name))  
     
     def analyze_text(self, prompts, top_k=3):
         self.activations.clear()
