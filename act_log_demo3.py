@@ -30,13 +30,17 @@ class ActivationAnalyzer:
             if "mlp." in name:
                 module.register_forward_hook(self._activation_hook(name))  
     
-    def analyze_text(self, prompts, top_k=3):
+    def analyze_text(self, prompts, top_k=3, data_type = "test"):
         self.activations.clear()
         
         for text in prompts:
             # format the prompt
-            question = text['question']
-            choices = text['choices']
+            if data_type == 'test':
+                question = text['question']
+                choices = text['choices']
+            elif data_type == 'train':
+                question = text['train']['question']
+                choices = text['train']['choices']
 
             prompt = (
             f"Question: {question}\n\nChoices:\n"
@@ -128,29 +132,56 @@ tokenizer.padding_side = "right"
 
 # loading the data
 data_name = "cais/mmlu"
-base_subset_name = "philosophy"
-alt_subset_name = "high_school_mathematics"
+aux_name = "auxiliary_train"
+ft_name = "philosophy"
+fta_name = "high_school_mathematics"
 
-base_dataset = load_dataset(data_name, base_subset_name, split = "test")
-alt_dataset = load_dataset(data_name, alt_subset_name, split = "test")
+aux_dataset = load_dataset(data_name, aux_name, split = "train")
+aux_dataset = aux_dataset.select(range(200))
+
+base_dataset = load_dataset(data_name, ft_name, split = "test")
+alt_dataset = load_dataset(data_name, fta_name, split = "test")
 
 
 # active neuron eval
-analyzer = ActivationAnalyzer(model, tokenizer)
-# fined tuned and base knowledge
-ftk = analyzer.analyze_text(base_dataset, top_k=1000)
+base_analyzer = ActivationAnalyzer(base_model, tokenizer)
+ft_analyzer = ActivationAnalyzer(model, tokenizer)
 
-tk = analyzer.analyze_text(alt_dataset, top_k=1000)
+# bf -> base fundamental activations
+# tf -> task fundamental activations
+# ttf -> task transfer fundamental activations
+bf = base_analyzer.analyze_text(aux_dataset, top_k=1000, data_type = 'train')
+tf_bf = ft_analyzer.analyze_text(base_dataset, top_k=1000)
+ttf_tf_bf = ft_analyzer.analyze_text(alt_dataset, top_k=1000)
 
-if ftk == tk:
-    print ("values are exactly the same")
-
-# change between merge and remove
-results = remove_common_values(tk,ftk)
+# isolating the fundamentals
+ttf = remove_common_values(ttf_tf_bf, tf_bf)
+tf = remove_common_values(tf_bf, bf)
 
 # store all of the results
-with open('topk_act.pkl', 'wb') as f:
-    pickle.dump(ftk, f)
+with open('topk_act_bf.pkl', 'wb') as f:
+    pickle.dump(bf, f)
 
-with open('topk_act.pkl', 'rb') as f:
+with open('topk_act_bf.pkl', 'rb') as f:
+    loaded_dict = pickle.load(f)
+
+
+with open('topk_act_ttf.pkl', 'wb') as f:
+    pickle.dump(ttf, f)
+
+with open('topk_act_ttf.pkl', 'rb') as f:
+    loaded_dict = pickle.load(f)
+
+
+with open('topk_act_tf.pkl', 'wb') as f:
+    pickle.dump(tf, f)
+
+with open('topk_act_tf.pkl', 'rb') as f:
+    loaded_dict = pickle.load(f)
+
+
+with open('topk_act_full.pkl', 'wb') as f:
+    pickle.dump(ttf_tf_bf, f)
+
+with open('topk_act_full.pkl', 'rb') as f:
     loaded_dict = pickle.load(f)

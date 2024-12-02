@@ -1,16 +1,15 @@
-import pickle
+from datasets import load_dataset
 
-with open('topk_act.pkl', 'rb') as f:
-    topk_act = pickle.load(f)
+# loading the data
+data_name = "cais/mmlu"
+aux_name = "auxiliary_train"
+ft_name = "philosophy"
+fta_name = "high_school_mathematics"
 
-# first int is the one to iterate through
-print (list(topk_act.items())[0][1]['indices'])
+aux_dataset = load_dataset(data_name, aux_name, split = "train")
+aux_dataset = aux_dataset.select(range(10))
 
-# why isn't it working here though 
-for i in range(len(topk_act)):
-    neurons_to_disable = list(topk_act.items())[i][1]['indices']
-    layer_name = list(topk_act.items())[i][0]
+
+for i in aux_dataset:
+    print (i['train']['question'])
     break
-
-print (neurons_to_disable)
-print (layer_name)

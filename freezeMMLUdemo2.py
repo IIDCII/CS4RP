@@ -14,8 +14,14 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pickle
 
-with open('topk_act.pkl', 'rb') as f:
-    topk_act = pickle.load(f)
+with open('topk_act_bf.pkl', 'rb') as f:
+    topk_act_bf = pickle.load(f)
+with open('topk_act_ttf.pkl', 'rb') as f:
+    topk_act_ttf = pickle.load(f)
+with open('topk_act_tf.pkl', 'rb') as f:
+    topk_act_tf = pickle.load(f)
+with open('topk_act_full.pkl', 'rb') as f:
+    topk_act_full = pickle.load(f)
 
 
 class NeuronManipulator:
@@ -123,6 +129,9 @@ tokenizer.padding_side = "right"
 
 # this will act as the new model from this point
 manipulator = NeuronManipulator(model,tokenizer)
+
+# change this to alter the scope
+topk_act = topk_act_tf
 
 print ("disabling neurons")
 # disable the neurons
