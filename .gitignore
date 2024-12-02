@@ -13,3 +13,7 @@ llama-2-7b-hf
 results_modified
 output.log
 topk_act.pkl
+topk_act_tf.pkl
+topk_act_ttf.pkl
+topk_act_bf.pkl
+topk_act_full.pkl
