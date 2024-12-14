@@ -90,7 +90,7 @@ class NeuronManipulator:
                     bad_words_ids=[[self.tokenizer.encode(" ")[0]], [self.tokenizer.encode("The")[0]], [self.tokenizer.encode("Step")[0]], [self.tokenizer.encode("Let")[0]]]
                 )
             
-            print (self.tokenizer.decode(outputs[0][-1:], skip_special_tokens=True).strip())
+            # print (self.tokenizer.decode(outputs[0][-1:], skip_special_tokens=True).strip())
             pred = self.tokenizer.decode(outputs[0][-1:], skip_special_tokens=True).strip()
                     
             # Convert prediction to index (A=0, B=1, etc.)
@@ -122,6 +122,8 @@ base_model = AutoModelForCausalLM.from_pretrained(
 model = PeftModel.from_pretrained(base_model, altered)
 model = model.merge_and_unload()
 
+# model = base_model
+
 # Reload tokenizer to save it
 tokenizer = AutoTokenizer.from_pretrained(base_model_name, trust_remote_code=True)
 tokenizer.pad_token = tokenizer.eos_token
@@ -131,7 +133,7 @@ tokenizer.padding_side = "right"
 manipulator = NeuronManipulator(model,tokenizer)
 
 # change this to alter the scope
-topk_act = topk_act_tf
+topk_act = topk_act_ttf
 
 print ("disabling neurons")
 # disable the neurons
@@ -145,7 +147,7 @@ print ("disabling complete")
 
 # loading the data
 data_name = "cais/mmlu"
-subset_name = "high_school_mathematics"
+subset_name = "philosophy"
 dataset = load_dataset(data_name, subset_name, split = "test")
 
 manipulator.MMLU(dataset)

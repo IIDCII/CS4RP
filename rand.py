@@ -1,15 +1,12 @@
 from datasets import load_dataset
 
 # loading the data
-data_name = "cais/mmlu"
+data_name = "CohereForAI/Global-MMLU"
 aux_name = "auxiliary_train"
 ft_name = "philosophy"
 fta_name = "high_school_mathematics"
 
-aux_dataset = load_dataset(data_name, aux_name, split = "train")
-aux_dataset = aux_dataset.select(range(10))
+dataset = load_dataset(data_name, "en",  split = "test")
 
 
-for i in aux_dataset:
-    print (i['train']['question'])
-    break
+print (dataset[0]["subject"])

@@ -150,9 +150,10 @@ ft_analyzer = ActivationAnalyzer(model, tokenizer)
 # bf -> base fundamental activations
 # tf -> task fundamental activations
 # ttf -> task transfer fundamental activations
-bf = base_analyzer.analyze_text(aux_dataset, top_k=1000, data_type = 'train')
-tf_bf = ft_analyzer.analyze_text(base_dataset, top_k=1000)
-ttf_tf_bf = ft_analyzer.analyze_text(alt_dataset, top_k=1000)
+bf = base_analyzer.analyze_text(aux_dataset, top_k=3, data_type = 'train')
+# change back to ft to get the ft phil model
+tf_bf = base_analyzer.analyze_text(base_dataset, top_k=3)
+ttf_tf_bf = base_analyzer.analyze_text(alt_dataset, top_k=3)
 
 # isolating the fundamentals
 ttf = remove_common_values(ttf_tf_bf, tf_bf)
