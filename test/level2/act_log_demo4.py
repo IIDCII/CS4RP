@@ -95,7 +95,7 @@ def remove_common_values(dict1, dict2):
     print ("final number of weights: ", sum(len(d['indices']) for d in dict1.values()))
     return dict1
 
-
+# merges all the values in dict1 and dict2
 def merge_indices(dict1, dict2):
     result = dict1.copy()
     for name in dict2:
@@ -133,19 +133,20 @@ tokenizer.padding_side = "right"
 data_name = "cais/mmlu"
 subset_name = "high_school_mathematics"
 
-aux_dataset = load_dataset(data_name, subset_name, split = "train")
-aux_dataset = aux_dataset.select(range(1))
+dataset = load_dataset(data_name, subset_name, split = "test")
+# dataset = dataset.select(range(1))
 
 
 # active neuron eval
 base_analyzer = ActivationAnalyzer(base_model, tokenizer)
 
 # get the topk for that single node given maths
-bf = base_analyzer.analyze_text(aux_dataset, top_k=3, data_type = 'train')
+bf = base_analyzer.analyze_text(dataset, top_k=3, data_type = 'test')
 
 # store all of the results
-with open('topk_act_bf.pkl', 'wb') as f:
+# make sure the file name is correct
+with open('topk/topk_act_base_hsm.pkl', 'wb') as f:
     pickle.dump(bf, f)
 
-with open('topk_act_bf.pkl', 'rb') as f:
+with open('topk/topk_act_base_hsm.pkl', 'rb') as f:
     loaded_dict = pickle.load(f)
