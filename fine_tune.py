@@ -1,7 +1,7 @@
 """
 before running, run nvidia-smi in the terminal to see what gpu's are free in your cluster
 """
-# setting up script
+# setting up script 
 import os
 os.environ["CUDA_VISIBLE_DEVICES"] = "7"
 
