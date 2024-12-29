@@ -1,5 +1,6 @@
 """
 Get the topk nodes for the first single point in the maths MMLU set
+just realised that you should just take the k=1000 and then you can crop it later since all of it is in order
 """
 
 import os
@@ -34,7 +35,7 @@ class ActivationAnalyzer:
             if "mlp." in name:
                 module.register_forward_hook(self._activation_hook(name))  
     
-    def analyze_text(self, prompts, top_k=3, data_type = "test"):
+    def analyze_text(self, prompts, top_k=1000, data_type = "test"):
         self.activations.clear()
         
         for text in prompts:
@@ -131,22 +132,22 @@ tokenizer.padding_side = "right"
 
 # loading the data
 data_name = "cais/mmlu"
-subset_name = "high_school_mathematics"
+subset_name = "high_school_physics"
 
 dataset = load_dataset(data_name, subset_name, split = "test")
 # dataset = dataset.select(range(1))
-
 
 # active neuron eval
 base_analyzer = ActivationAnalyzer(base_model, tokenizer)
 
 # get the topk for that single node given maths
-bf = base_analyzer.analyze_text(dataset, top_k=3, data_type = 'test')
+# k set to 1000
+bf = base_analyzer.analyze_text(dataset, top_k=1000, data_type = 'test')
 
 # store all of the results
 # make sure the file name is correct
-with open('topk/topk_act_base_hsm.pkl', 'wb') as f:
+with open('topk/base_hsp.pkl', 'wb') as f:
     pickle.dump(bf, f)
 
-with open('topk/topk_act_base_hsm.pkl', 'rb') as f:
+with open('topk/base_hsp.pkl', 'rb') as f:
     loaded_dict = pickle.load(f)
