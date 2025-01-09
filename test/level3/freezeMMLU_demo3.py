@@ -3,7 +3,7 @@
 
 import os
 # set the GPUs
-os.environ["CUDA_VISIBLE_DEVICES"] = "4,5"
+os.environ["CUDA_VISIBLE_DEVICES"] = "3,4"
 # setting for vllm inference so that it can run in parallel
 os.environ["VLLM_WORKER_MULTIPROC_METHOD"] = "spawn"
 
@@ -115,10 +115,10 @@ base_model = AutoModelForCausalLM.from_pretrained(
     device_map="auto"
 )
 
-# model = base_model
+model = base_model
 
 # Reload tokenizer to save it
-tokenizer = AutoTokenizer.from_pretrained(base_model_name, trust_remote_code=True)
+tokenizer = AutoTokenizer.from_pretrained(model, trust_remote_code=True)
 tokenizer.pad_token = tokenizer.eos_token
 tokenizer.padding_side = "right"
 
