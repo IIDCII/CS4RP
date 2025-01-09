@@ -1,12 +1,15 @@
-from datasets import load_dataset
+import pickle
 
-# loading the data
-data_name = "CohereForAI/Global-MMLU"
-aux_name = "auxiliary_train"
-ft_name = "philosophy"
-fta_name = "high_school_mathematics"
+with open('topk/base_auxt.pkl', 'rb') as f:
+    topk_base_auxt = pickle.load(f)
+with open('topk/base_hsm.pkl', 'rb') as f:
+    topk_base_hsm = pickle.load(f)
+with open('topk/base_hsp.pkl', 'rb') as f:
+    topk_base_hsp = pickle.load(f)
 
-dataset = load_dataset(data_name, "en",  split = "test")
-
-
-print (dataset[0]["subject"])
+# adjusting the top k for freezing weights
+def adjust_topk(data,topk: int):
+    for name in data:
+        for indices in name:
+            indices = indices[:topk]
+    return data

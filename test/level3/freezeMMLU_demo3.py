@@ -60,16 +60,24 @@ class NeuronManipulator:
                 if n not in neuron_indices
             ]
     
-    def MMLU(self, dataset):    
+    def MMLU(self, dataset, data_type = "test"):    
         correct = 0
         total = 0
 
         for item in dataset:
             if total%50 == 0:
                 print(correct, " correct out of ", total)
-            question = item['question']
-            choices = item['choices']
-            answer = item['answer']
+            
+            # changing retrieval based on the data type
+            if data_type == 'test':
+                question = item['question']
+                choices = item['choices']
+                answer = item['answer']
+            elif data_type == 'train':
+                question = item['train']['question']
+                choices = item['train']['choices']
+                answer = item['train']['answer']
+
 
             prompt = (
                     f"Question: {question}\n\nChoices:\n"
@@ -120,14 +128,10 @@ def remove_common_values(dict1, dict2):
     print ("final number of weights: ", sum(len(d['indices']) for d in dict1.values()))
     return dict1
 
-topk_base_hsm_sub_auxt = remove_common_values(topk_base_hsm,topk_base_auxt)
-topk_base_hsp_sub_auxt = remove_common_values(topk_base_hsp,topk_base_auxt)
-
 # adjusting the top k for freezing weights
 def adjust_topk(data,topk: int):
     for name in data:
-        for _, indices in name:
-            indices = indices[:topk]
+        data[name]['indices'] = data[name]['indices'][:topk]
     return data
 
 # loading the model
@@ -149,8 +153,14 @@ tokenizer.padding_side = "right"
 # this will act as the new model from this point
 manipulator = NeuronManipulator(base_model,tokenizer)
 
+# make sure to turn these off since they will affect the results
+topk_base_hsp_sub_auxt = remove_common_values(topk_base_hsp,topk_base_auxt)
+
+# adjust the topk
+top100_base_hsp_sub_auxt = adjust_topk(topk_base_hsp_sub_auxt, 100)
+
 # change this to alter the scope
-topk_act = topk_base_hsm
+topk_act = topk_base_hsp_sub_auxt
 
 print ("disabling neurons")
 # disable the neurons
@@ -164,7 +174,9 @@ print ("disabling complete")
 
 # loading the data
 data_name = "cais/mmlu"
-subset_name = "high_school_physics"
+subset_name = "high_school_mathematics"
 dataset = load_dataset(data_name, subset_name, split = "test")
+# set this for auxt
+# dataset = dataset.select(range(200))
 
-manipulator.MMLU(dataset)
+manipulator.MMLU(dataset, "test")
