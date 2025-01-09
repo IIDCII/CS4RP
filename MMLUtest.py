@@ -1,7 +1,7 @@
 # important to run this first or else GPU allocation will not work
 import os
 # set the GPUs
-os.environ["CUDA_VISIBLE_DEVICES"] = "6,7"
+os.environ["CUDA_VISIBLE_DEVICES"] = "4,5"
 # setting for vllm inference so that it can run in parallel
 os.environ["VLLM_WORKER_MULTIPROC_METHOD"] = "spawn"
 

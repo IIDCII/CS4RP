@@ -3,7 +3,7 @@
 
 import os
 # set the GPUs
-os.environ["CUDA_VISIBLE_DEVICES"] = "3,4"
+os.environ["CUDA_VISIBLE_DEVICES"] = "4,5"
 # setting for vllm inference so that it can run in parallel
 os.environ["VLLM_WORKER_MULTIPROC_METHOD"] = "spawn"
 
@@ -104,6 +104,32 @@ class NeuronManipulator:
         print ("MMLU score: ", (correct/total) * 100)
 
 
+# removes all values from dict1 that's in dict2 to isolate the the most used transferred 
+def remove_common_values(dict1, dict2):
+    print ("total amount of weights: ", sum(len(d['indices']) for d in dict1.values()))
+    removing = 0
+    for name in dict1:
+        if name in dict2:
+            indices_to_remove = set(dict2[name]['indices']) & set(dict1[name]['indices'])
+            removing += len(indices_to_remove)
+            dict1[name]['values'] = [v for i, v in zip(dict1[name]['indices'], dict1[name]['values']) 
+                                    if i not in indices_to_remove]
+            dict1[name]['indices'] = [i for i in dict1[name]['indices'] if i not in indices_to_remove]
+    
+    print ("Removing ",removing, " from the total")
+    print ("final number of weights: ", sum(len(d['indices']) for d in dict1.values()))
+    return dict1
+
+topk_base_hsm_sub_auxt = remove_common_values(topk_base_hsm,topk_base_auxt)
+topk_base_hsp_sub_auxt = remove_common_values(topk_base_hsp,topk_base_auxt)
+
+# adjusting the top k for freezing weights
+def adjust_topk(data,topk: int):
+    for name in data:
+        for _, indices in name:
+            indices = indices[:topk]
+    return data
+
 # loading the model
 base_model_name = "Llama-3.1-8B-Instruct"
 
@@ -115,10 +141,8 @@ base_model = AutoModelForCausalLM.from_pretrained(
     device_map="auto"
 )
 
-model = base_model
-
 # Reload tokenizer to save it
-tokenizer = AutoTokenizer.from_pretrained(model, trust_remote_code=True)
+tokenizer = AutoTokenizer.from_pretrained(base_model_name, trust_remote_code=True)
 tokenizer.pad_token = tokenizer.eos_token
 tokenizer.padding_side = "right"
 
@@ -126,7 +150,7 @@ tokenizer.padding_side = "right"
 manipulator = NeuronManipulator(base_model,tokenizer)
 
 # change this to alter the scope
-topk_act = topk_base_auxt
+topk_act = topk_base_hsm
 
 print ("disabling neurons")
 # disable the neurons
@@ -140,7 +164,7 @@ print ("disabling complete")
 
 # loading the data
 data_name = "cais/mmlu"
-subset_name = "high_school_mathematics"
+subset_name = "high_school_physics"
 dataset = load_dataset(data_name, subset_name, split = "test")
 
 manipulator.MMLU(dataset)
