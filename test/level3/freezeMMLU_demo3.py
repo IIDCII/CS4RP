@@ -88,6 +88,9 @@ class NeuronManipulator:
 
             inputs = self.tokenizer(prompt, return_tensors="pt", truncation=True)
 
+            # set the inputs to cuda
+            inputs = {k: v.to(self.model.device) for k, v in inputs.items()}
+
             with torch.no_grad():
                 outputs = self.model.generate(
                     **inputs,
@@ -154,13 +157,10 @@ tokenizer.padding_side = "right"
 manipulator = NeuronManipulator(base_model,tokenizer)
 
 # make sure to turn these off since they will affect the results
-topk_base_hsp_sub_auxt = remove_common_values(topk_base_hsp,topk_base_auxt)
+topk_act = remove_common_values(topk_base_hsm,topk_base_auxt)
 
 # adjust the topk
-top100_base_hsp_sub_auxt = adjust_topk(topk_base_hsp_sub_auxt, 100)
-
-# change this to alter the scope
-topk_act = topk_base_hsp_sub_auxt
+topk_act = adjust_topk(topk_act, 3)
 
 print ("disabling neurons")
 # disable the neurons
@@ -174,7 +174,7 @@ print ("disabling complete")
 
 # loading the data
 data_name = "cais/mmlu"
-subset_name = "high_school_mathematics"
+subset_name = "high_school_physics"
 dataset = load_dataset(data_name, subset_name, split = "test")
 # set this for auxt
 # dataset = dataset.select(range(200))
