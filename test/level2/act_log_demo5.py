@@ -38,25 +38,11 @@ class ActivationAnalyzer:
             if "mlp." in name:
                 module.register_forward_hook(self._activation_hook(name))  
     
-    def analyze_text(self, prompts, top_k=1000, data_type = "test"):
+    def analyze_text(self, data, top_k=1000, data_type = "test"):
         self.activations.clear()
         
-        for text in prompts:
-            # format the prompt
-            if data_type == 'test':
-                question = text['question']
-                choices = text['choices']
-            elif data_type == 'train':
-                question = text['train']['question']
-                choices = text['train']['choices']
-
-            prompt = (
-            f"Question: {question}\n\nChoices:\n"
-            f"A. {choices[0]}\nB. {choices[1]}\nC. {choices[2]}\nD. {choices[3]}\n"
-            f"Do not explain and give the answer with strictly one letter from options A, B, C, or D.\nAnswer:"
-            )
-
-            inputs = self.tokenizer(prompt, return_tensors="pt")
+        for text in data:
+            inputs = self.tokenizer(text, return_tensors="pt")
             
             with torch.no_grad():
                 outputs = self.model(**inputs)
