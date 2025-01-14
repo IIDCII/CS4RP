@@ -1,15 +1,13 @@
 import pickle
+from datasets import load_from_disk
+from datasets import Dataset
 
-with open('topk/base_auxt.pkl', 'rb') as f:
-    topk_base_auxt = pickle.load(f)
-with open('topk/base_hsm.pkl', 'rb') as f:
-    topk_base_hsm = pickle.load(f)
-with open('topk/base_hsp.pkl', 'rb') as f:
-    topk_base_hsp = pickle.load(f)
+# loading the data
+data_path = "data/Mathematics,1970-2002"
+dataset = load_from_disk(data_path)
+dataset = dataset[:1000]["text"]
+dataset = [{"text": text} for text in dataset]
+dataset = Dataset.from_list(dataset)
 
-# adjusting the top k for freezing weights
-def adjust_topk(data,topk: int):
-    for name in data:
-        for indices in name:
-            indices = indices[:topk]
-    return data
+
+print (dataset[0]["text"])

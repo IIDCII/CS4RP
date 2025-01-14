@@ -19,6 +19,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pickle
 from datasets import load_dataset
+from datasets import load_from_disk
+from datasets import Dataset
 
 class ActivationAnalyzer:
     def __init__(self, model, tokenizer):
@@ -38,15 +40,29 @@ class ActivationAnalyzer:
             if "mlp." in name:
                 module.register_forward_hook(self._activation_hook(name))  
     
-    def analyze_text(self, data, top_k=1000, data_type = "test"):
+    def analyze_text(self, data, top_k=1000):
+
+        # clear the activations
+        total_activation = 0
+        total_samples = 0
+        # clear the activations
         self.activations.clear()
         
-        for text in data:
-            inputs = self.tokenizer(text, return_tensors="pt")
-            
+        # runs through all the training data
+        for i,text in enumerate(data):
+            print(f"Processing text {i}")
+
+            inputs = self.tokenizer(text["text"], return_tensors="pt")
+
             with torch.no_grad():
                 outputs = self.model(**inputs)
             
+            # unload inputs and ouputs from gpu
+            del inputs
+            del outputs
+            torch.cuda.empty_cache()
+
+        # get the topk for the training data   
         results = {}
         for name, activation in self.activations.items():
             # Calculate mean activation per neuron
@@ -120,23 +136,23 @@ tokenizer.pad_token = tokenizer.eos_token
 tokenizer.padding_side = "right"
 
 # loading the data
-data_name = "cais/mmlu"
-subset_name = "high_school_physics"
-
-dataset = load_dataset(data_name, subset_name, split = "test")
-# dataset = dataset.select(range(1))
+data_path = "data/Mathematics,1970-2002"
+dataset = load_from_disk(data_path)
+dataset = dataset[:10]["text"]
+dataset = [{"text": text} for text in dataset]
+dataset = Dataset.from_list(dataset)
 
 # active neuron eval
 base_analyzer = ActivationAnalyzer(base_model, tokenizer)
 
 # get the topk for that single node given maths
 # k set to 1000
-bf = base_analyzer.analyze_text(dataset, top_k=1000, data_type = 'test')
+bf = base_analyzer.analyze_text(dataset, top_k=1000)
 
 # store all of the results
 # make sure the file name is correct
-with open('topk/base_hsp.pkl', 'wb') as f:
+with open('topk/base_maths.pkl', 'wb') as f:
     pickle.dump(bf, f)
 
-with open('topk/base_hsp.pkl', 'rb') as f:
+with open('topk/base_maths.pkl', 'rb') as f:
     loaded_dict = pickle.load(f)
