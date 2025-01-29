@@ -22,7 +22,7 @@ from datasets import load_dataset
 from datasets import load_from_disk
 from datasets import Dataset
 
-class ActivationAnalyzer:
+class ActivationAnalyser:
     def __init__(self, model, tokenizer):
         self.tokenizer = tokenizer
         self.model = model
@@ -41,19 +41,21 @@ class ActivationAnalyzer:
                 module.register_forward_hook(self._activation_hook(name))  
     
     def analyze_text(self, data, top_k=1000):
-
-        # clear the activations
-        total_activation = 0
-        total_samples = 0
-        # clear the activations
         self.activations.clear()
         
         # runs through all the training data
         for i,text in enumerate(data):
             print(f"Processing text {i}")
+            print ("VRAM: ", torch.cuda.memory_allocated()/1e9)
 
-            inputs = self.tokenizer(text["text"], return_tensors="pt")
-
+            inputs = self.tokenizer(
+                text["text"], 
+                return_tensors="pt",
+                padding=True,
+                truncation=True,
+                max_length=4096,
+                )
+            
             with torch.no_grad():
                 outputs = self.model(**inputs)
             
@@ -61,8 +63,9 @@ class ActivationAnalyzer:
             del inputs
             del outputs
             torch.cuda.empty_cache()
+        
 
-        # get the topk for the training data   
+        # get the topk for the training data
         results = {}
         for name, activation in self.activations.items():
             # Calculate mean activation per neuron
@@ -138,16 +141,16 @@ tokenizer.padding_side = "right"
 # loading the data
 data_path = "data/Mathematics,1970-2002"
 dataset = load_from_disk(data_path)
-dataset = dataset[:10]["text"]
+dataset = dataset[:1000]["text"]
 dataset = [{"text": text} for text in dataset]
 dataset = Dataset.from_list(dataset)
 
 # active neuron eval
-base_analyzer = ActivationAnalyzer(base_model, tokenizer)
+base_analyser = ActivationAnalyser(base_model, tokenizer)
 
 # get the topk for that single node given maths
 # k set to 1000
-bf = base_analyzer.analyze_text(dataset, top_k=1000)
+bf = base_analyser.analyze_text(dataset, top_k=1000)
 
 # store all of the results
 # make sure the file name is correct

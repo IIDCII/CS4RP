@@ -1,13 +1,10 @@
-import pickle
-from datasets import load_from_disk
-from datasets import Dataset
+import torch
 
-# loading the data
-data_path = "data/Mathematics,1970-2002"
-dataset = load_from_disk(data_path)
-dataset = dataset[:1000]["text"]
-dataset = [{"text": text} for text in dataset]
-dataset = Dataset.from_list(dataset)
+# Simulating a tensor of shape [batch_size=4, channels=3, height=5, width=5]
+activation = torch.randn(4, 3, 5, 5)
+
+# Compute mean absolute activation per neuron
+mean_activation = activation.abs().mean(dim=(0, 1))
 
 
-print (dataset[0]["text"])
+print("Shape of mean activation:", mean_activation)
