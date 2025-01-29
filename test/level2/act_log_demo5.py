@@ -45,9 +45,8 @@ class ActivationAnalyser:
         
         # runs through all the training data
         for i,text in enumerate(data):
-            print(f"Processing text {i}")
-            print ("VRAM: ", torch.cuda.memory_allocated()/1e9)
-
+            # print progress bar out of total
+            print(f"Processing text {i+1}/{len(data)}")
             inputs = self.tokenizer(
                 text["text"], 
                 return_tensors="pt",
@@ -159,3 +158,5 @@ with open('topk/base_maths.pkl', 'wb') as f:
 
 with open('topk/base_maths.pkl', 'rb') as f:
     loaded_dict = pickle.load(f)
+
+print ("process complete")
