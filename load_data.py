@@ -6,7 +6,7 @@ import os
 # if the data is local then this step isn't needed
 # make sure to select the correct split
 data_name = "claran/modular-s2orc"
-subset_name = "Philosophy,1970-2022"
+subset_name = "Physics,1970-1997"
 save_dir = "data"
 
 os.makedirs(save_dir, exist_ok=True)
