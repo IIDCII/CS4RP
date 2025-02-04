@@ -4,7 +4,7 @@ act log 5 but getting the average based on the activations
 
 import os
 # set the GPUs
-os.environ["CUDA_VISIBLE_DEVICES"] = "4,7"
+os.environ["CUDA_VISIBLE_DEVICES"] = "2"
 # setting for vllm inference so that it can run in parallel
 os.environ["VLLM_WORKER_MULTIPROC_METHOD"] = "spawn"
 
@@ -44,7 +44,7 @@ class ActivationAnalyser:
             # print progress bar out of total
             print(f"Processing text {i+1}/{len(data)}")
             inputs = self.tokenizer(
-                text["text"], 
+                text["text"],
                 return_tensors="pt",
                 padding=True,
                 truncation=True,
@@ -64,14 +64,19 @@ class ActivationAnalyser:
         results = {}
         for name, activation in self.activations.items():
             # Calculate mean activation per neuron (print and set to bin then get avg)
+            if name == 'model.layers.0.mlp.gate_proj':
+                print (activation.shape)
+                # checking how many are insignificant
+                num_zeros = (activation <= 1e-6).sum().item()
+                print (num_zeros)
             mean_activation = activation.abs().mean(dim=(0, 1))
+            
             # Get top-k neurons (change this so that the topk is not per layer)
             top_values, top_indices = torch.topk(mean_activation, top_k)
             results[name] = {
                 "indices": top_indices.tolist(),
                 "values": top_values.tolist()
             }
-        
         return results
     
     def visualize_activations(self, results, layer_name):
@@ -136,7 +141,7 @@ tokenizer.padding_side = "right"
 # loading the data
 data_path = "data/Philosophy,1970-2022"
 dataset = load_from_disk(data_path)
-dataset = dataset[:1000]["text"]
+dataset = dataset[:1]["text"]
 dataset = [{"text": text} for text in dataset]
 dataset = Dataset.from_list(dataset)
 
@@ -149,10 +154,10 @@ bf = base_analyser.analyze_text(dataset, top_k=1000)
 
 # store all of the results
 # make sure the file name is correct
-with open('topk/base_philosophy.pkl', 'wb') as f:
+with open('topk/base_test.pkl', 'wb') as f:
     pickle.dump(bf, f)
 
-with open('topk/base_philosophy.pkl', 'rb') as f:
+with open('topk/base_test.pkl', 'rb') as f:
     loaded_dict = pickle.load(f)
 
 print ("process complete")
