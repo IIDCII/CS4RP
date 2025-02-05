@@ -4,7 +4,7 @@ act log 5 but getting the average based on the activations
 
 import os
 # set the GPUs
-os.environ["CUDA_VISIBLE_DEVICES"] = "2"
+os.environ["CUDA_VISIBLE_DEVICES"] = "2,4"
 # setting for vllm inference so that it can run in parallel
 os.environ["VLLM_WORKER_MULTIPROC_METHOD"] = "spawn"
 
@@ -67,12 +67,20 @@ class ActivationAnalyser:
             if name == 'model.layers.0.mlp.gate_proj':
                 print (activation.shape)
                 # checking how many are insignificant
-                num_zeros = (activation <= 1e-6).sum().item()
+                num_zeros = (abs(activation) <= 0.02).sum().item()
                 print (num_zeros)
-            mean_activation = activation.abs().mean(dim=(0, 1))
+
             
-            # Get top-k neurons (change this so that the topk is not per layer)
-            top_values, top_indices = torch.topk(mean_activation, top_k)
+            # if abs(activation) <= 0.02 then set to 0, else set to 1
+            activation[abs(activation) <= 0.02] = 0
+            activation[activation != 0] = 1
+
+            # get tally of the activations
+            tally = torch.sum(activation, dim=0)
+            
+            # Get top-k neurons (neurons with the highest tally)
+            top_values, top_indices = torch.topk(tally, top_k)
+            
             results[name] = {
                 "indices": top_indices.tolist(),
                 "values": top_values.tolist()
