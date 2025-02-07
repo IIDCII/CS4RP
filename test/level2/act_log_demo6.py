@@ -154,10 +154,10 @@ bf = base_analyser.analyze_text(dataset, top_k=1000)
 
 # store all of the results
 # make sure the file name is correct
-with open('topk/base_auxt.pkl', 'wb') as f:
+with open('topk/base_philosophy.pkl', 'wb') as f:
     pickle.dump(bf, f)
 
-with open('topk/base_auxt.pkl', 'rb') as f:
+with open('topk/base_philosophy.pkl', 'rb') as f:
     loaded_dict = pickle.load(f)
 
 print ("process complete")

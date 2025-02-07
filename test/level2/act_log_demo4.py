@@ -5,7 +5,7 @@ just realised that you should just take the k=1000 and then you can crop it late
 
 import os
 # set the GPUs
-os.environ["CUDA_VISIBLE_DEVICES"] = "6,7"
+os.environ["CUDA_VISIBLE_DEVICES"] = "5,6"
 # setting for vllm inference so that it can run in parallel
 os.environ["VLLM_WORKER_MULTIPROC_METHOD"] = "spawn"
 
@@ -39,6 +39,9 @@ class ActivationAnalyzer:
         self.activations.clear()
         
         for text in prompts:
+            # print progress
+            print(f"Processing text {text}")
+
             # format the prompt
             if data_type == 'test':
                 question = text['question']
@@ -60,15 +63,20 @@ class ActivationAnalyzer:
             
         results = {}
         for name, activation in self.activations.items():
-            # Calculate mean activation per neuron
-            mean_activation = activation.abs().mean(dim=(0, 1))
-            # Get top-k neurons
-            top_values, top_indices = torch.topk(mean_activation, top_k)
+            # if abs(activation) <= 0.02 then set to 0, else set to 1
+            activation[abs(activation) <= 0.02] = 0
+            activation[activation != 0] = 1
+
+            # get the tally
+            tally = activation.abs().sum(dim=(0, 1))
+            
+            # Get top-k neurons (neurons with the highest tally)
+            top_values, top_indices = torch.topk(tally, top_k)
+            
             results[name] = {
                 "indices": top_indices.tolist(),
                 "values": top_values.tolist()
             }
-        
         return results
     
     def visualize_activations(self, results, layer_name):
@@ -135,7 +143,7 @@ data_name = "cais/mmlu"
 subset_name = "auxiliary_train"
 
 dataset = load_dataset(data_name, subset_name, split = "train")
-# dataset = dataset.select(range(1))
+dataset = dataset.select(range(1000))
 
 # active neuron eval
 base_analyzer = ActivationAnalyzer(base_model, tokenizer)
@@ -146,8 +154,11 @@ bf = base_analyzer.analyze_text(dataset, top_k=1000, data_type = 'train')
 
 # store all of the results
 # make sure the file name is correct
-with open('topk/base_hsp.pkl', 'wb') as f:
+with open('topk/base_auxt.pkl', 'wb') as f:
     pickle.dump(bf, f)
 
-with open('topk/base_hsp.pkl', 'rb') as f:
+with open('topk/base_auxt.pkl', 'rb') as f:
     loaded_dict = pickle.load(f)
+
+
+print ("process complete")
