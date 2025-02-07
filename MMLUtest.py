@@ -1,7 +1,7 @@
 # important to run this first or else GPU allocation will not work
 import os
 # set the GPUs
-os.environ["CUDA_VISIBLE_DEVICES"] = "4,5"
+os.environ["CUDA_VISIBLE_DEVICES"] = "6,7"
 # setting for vllm inference so that it can run in parallel
 os.environ["VLLM_WORKER_MULTIPROC_METHOD"] = "spawn"
 
@@ -84,7 +84,7 @@ for item in dataset:
         outputs = model.generate(
             **inputs,
             max_new_tokens=1,
-            temperature = 0.1,
+            temperature = 0.7,
             pad_token_id=tokenizer.eos_token_id,
             bad_words_ids=[[tokenizer.encode(" ")[0]], [tokenizer.encode("The")[0]], [tokenizer.encode("Step")[0]], [tokenizer.encode("Let")[0]]]
         )

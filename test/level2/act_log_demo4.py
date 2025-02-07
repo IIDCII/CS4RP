@@ -80,7 +80,7 @@ class ActivationAnalyzer:
         plt.ylabel("Mean Activation")
         plt.show()
 
-# removes all values from dict1 that's in dict2 to isolate the the most used transferred 
+# removes all values from dict1 that's in dict2 to isolate the the most used transferred
 def remove_common_values(dict1, dict2):
     print ("total amount of weights: ", sum(len(d['indices']) for d in dict1.values()))
     removing = 0
@@ -132,9 +132,9 @@ tokenizer.padding_side = "right"
 
 # loading the data
 data_name = "cais/mmlu"
-subset_name = "high_school_physics"
+subset_name = "auxiliary_train"
 
-dataset = load_dataset(data_name, subset_name, split = "test")
+dataset = load_dataset(data_name, subset_name, split = "train")
 # dataset = dataset.select(range(1))
 
 # active neuron eval
@@ -142,7 +142,7 @@ base_analyzer = ActivationAnalyzer(base_model, tokenizer)
 
 # get the topk for that single node given maths
 # k set to 1000
-bf = base_analyzer.analyze_text(dataset, top_k=1000, data_type = 'test')
+bf = base_analyzer.analyze_text(dataset, top_k=1000, data_type = 'train')
 
 # store all of the results
 # make sure the file name is correct
