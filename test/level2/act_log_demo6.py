@@ -145,7 +145,7 @@ tokenizer.pad_token = tokenizer.eos_token
 tokenizer.padding_side = "right"
 
 # loading the data
-data_path = "data/Philosophy,1970-2022"
+data_path = "data/Mathematics,1970-2002"
 dataset = load_from_disk(data_path)
 dataset = dataset[:1000]["text"]
 dataset = [{"text": text} for text in dataset]
