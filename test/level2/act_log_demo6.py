@@ -4,7 +4,7 @@ act log 5 but getting the average based on the activations
 
 import os
 # set the GPUs
-os.environ["CUDA_VISIBLE_DEVICES"] = "6,7"
+os.environ["CUDA_VISIBLE_DEVICES"] = "2,3"
 # setting for vllm inference so that it can run in parallel
 os.environ["VLLM_WORKER_MULTIPROC_METHOD"] = "spawn"
 
@@ -63,8 +63,14 @@ class ActivationAnalyser:
         # get the topk for the training data
         results = {}
         for name, activation in self.activations.items():
+            # check the percentage of activations that are less than a value
+            # if name == 'model.layers.0.mlp.gate_proj':
+            #     print ("total activations: ", activation.numel())
+            #     print ("total activations less than: ", (abs(activation) <= 0.07).sum())
+            #     print ("percentage of activations less than: ", 100 * (abs(activation) <= 0.07).sum().item()/activation.numel(), "%")
+
             # if abs(activation) <= 0.02 then set to 0, else set to 1
-            activation[abs(activation) <= 0.02] = 0
+            activation[abs(activation) <= 0.07] = 0
             activation[activation != 0] = 1
 
             # get the tally
@@ -139,9 +145,9 @@ tokenizer.pad_token = tokenizer.eos_token
 tokenizer.padding_side = "right"
 
 # loading the data
-data_path = "data/Mathematics,1970-2002"
+data_path = "data/Philosophy,1970-2022"
 dataset = load_from_disk(data_path)
-# dataset = dataset[:1000]["text"]
+dataset = dataset[:1000]["text"]
 dataset = [{"text": text} for text in dataset]
 dataset = Dataset.from_list(dataset)
 
@@ -154,10 +160,10 @@ bf = base_analyser.analyze_text(dataset, top_k=1000)
 
 # store all of the results
 # make sure the file name is correct
-with open('topk/base_philosophy.pkl', 'wb') as f:
+with open('topk/base_maths.pkl', 'wb') as f:
     pickle.dump(bf, f)
 
-with open('topk/base_philosophy.pkl', 'rb') as f:
+with open('topk/base_maths.pkl', 'rb') as f:
     loaded_dict = pickle.load(f)
 
 print ("process complete")
