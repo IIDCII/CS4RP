@@ -1,9 +1,9 @@
 import pickle
 import matplotlib.pyplot as plt
 import numpy as np
-import scipy.ndimage import gaussian_filter
+from scipy.ndimage import gaussian_filter
 import scipy
-import skimage import filters
+from skimage import filters
 from skimage import data
 import seaborn as sns
 from collections import Counter
@@ -68,7 +68,20 @@ def show_act_in_layers(data,color):
         )
 
 
+# load all of the topk needed
+maths = topk['../../topk/base_maths.pkl']
+act_index_maths = get_act_index(maths,1000)
+act_values_maths = get_act_values(maths,1000)
 
+# show the graph for the maths
+act_index_maths20 = get_act_index(maths,20)
 
+show_act_in_layers(act_index_maths20,"green")
+plt.xlabel("Layer")
+plt.ylabel("Nodes")
+plt.title("topk maths in each layer")
+
+# save to folder ao
+plt.savefig("ao/topk20_maths.png")
 
 print ("process complete")
