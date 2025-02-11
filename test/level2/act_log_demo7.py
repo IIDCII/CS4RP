@@ -23,13 +23,13 @@ class ActivationAnalyser:
         self.tokenizer = tokenizer
         self.model = model
         self.activations = {}
-        self.tally = {}
         self._register_hooks()
     
     def _activation_hook(self, name):
         def hook(module, input, output):
-            self.activations[name] = output.detach()
-            self.tally[name] = torch.zeros_like(output.detach()).detach()
+            if name not in self.activations:
+                self.activations[name] = output.detach()
+            self.activations[name] = self.activations[name] + output.detach()
         return hook
     
     def _register_hooks(self):
@@ -48,9 +48,9 @@ class ActivationAnalyser:
             inputs = self.tokenizer(
                 text["text"],
                 return_tensors="pt",
-                padding=True,
+                padding="max_length",
                 truncation=True,
-                max_length=10,
+                max_length=4096,
                 )
             
             with torch.no_grad():
@@ -58,59 +58,27 @@ class ActivationAnalyser:
             
             # add the activations per text to the tally
             for name, activation in self.activations.items():
-                activation[abs(activation) <= 0.1] = 0
-                activation[activation != 0] = 1
-                # get the tally
-                self.tally[name] = self.tally[name] + activation.abs().sum(dim=(0, 1))
-
-            
+                activation[abs(activation)%1 <= 0.15] = 0
+                activation[activation != 0] += 1
+                
             # unload inputs and ouputs from gpu
             del inputs
             del outputs
             torch.cuda.empty_cache()
-        
-
-        # get the topk for the training data 
 
         results = {}
 
-        for name, tally in self.tally.items():
-            # get the tally
-            ta = tally.abs().sum(dim=(0, 1))
+        for name, activation in self.activations.items():
+            # get the activation
+            tally = activation.abs().sum(dim=(0, 1)).detach()
 
-            top_values, top_indices = torch.topk(ta, top_k)
+            top_values, top_indices = torch.topk(tally, top_k)
             
             results[name] = {
                 "indices": top_indices.tolist(),
                 "values": top_values.tolist()
             }
             
-
-        # get the topk for the training data
-        # results = {}
-        # for name, activation in self.activations.items():
-        #     # check the percentage of activations that are less than a value
-        #     # if name == 'model.layers.0.mlp.gate_proj':
-        #     #     print ("total activations: ", activation.numel())
-        #     #     print ("total activations less than: ", (abs(activation) <= 0.1).sum())
-        #     #     print ("percentage of activations less than: ", 100 * (abs(activation) <= 0.1).sum().item()/activation.numel(), "%")
-
-        #     # if abs(activation) <= 0.02 then set to 0, else set to 1
-        #     activation[abs(activation) <= 0.1] = 0
-        #     activation[activation != 0] = 1
-
-        #     # get the tally
-        #     tally = activation.abs().sum(dim=(0, 1))
-            
-        #     # Get top-k neurons (neurons with the highest tally)
-        #     top_values, top_indices = torch.topk(tally, top_k)
-            
-        #     results[name] = {
-        #         "indices": top_indices.tolist(),
-        #         "values": top_values.tolist()
-        #     }
-        
-
         return results
     
     def visualize_activations(self, results, layer_name):
@@ -121,40 +89,6 @@ class ActivationAnalyser:
         plt.xlabel("Neuron Index")
         plt.ylabel("Mean Activation")
         plt.show()
-
-# removes all values from dict1 that's in dict2 to isolate the the most used transferred 
-def remove_common_values(dict1, dict2):
-    print ("total amount of weights: ", sum(len(d['indices']) for d in dict1.values()))
-    removing = 0
-    for name in dict1:
-        if name in dict2:
-            indices_to_remove = set(dict2[name]['indices']) & set(dict1[name]['indices'])
-            removing += len(indices_to_remove)
-            dict1[name]['values'] = [v for i, v in zip(dict1[name]['indices'], dict1[name]['values']) 
-                                    if i not in indices_to_remove]
-            dict1[name]['indices'] = [i for i in dict1[name]['indices'] if i not in indices_to_remove]
-    
-    print ("Removing ",removing, " from the total")
-    print ("final number of weights: ", sum(len(d['indices']) for d in dict1.values()))
-    return dict1
-
-# merges all the values in dict1 and dict2
-def merge_indices(dict1, dict2):
-    result = dict1.copy()
-    for name in dict2:
-        if name in result:
-            # Create dictionary with index:value pairs, dict2 values override dict1
-            combined = dict(zip(result[name]['indices'], result[name]['values']))
-            combined.update(dict(zip(dict2[name]['indices'], dict2[name]['values'])))
-            # Sort and split back into separate lists
-            sorted_items = sorted(combined.items())
-            result[name]['indices'], result[name]['values'] = zip(*sorted_items)
-        else:
-            result[name] = dict2[name]
-    print ("total amount of weights in dict1: ", sum(len(d['indices']) for d in dict1.values()))
-    print ("total amount of weights in dict2: ", sum(len(d['indices']) for d in dict2.values()))
-    print ("total amount of weights in returned: ", sum(len(d['indices']) for d in result.values()))
-    return result
 
 # loading the model
 base_model_name = "Llama-3.1-8B-Instruct"
