@@ -1,11 +1,10 @@
 """
-Get the topk nodes for the first single point in the maths MMLU set
-just realised that you should just take the k=1000 and then you can crop it later since all of it is in order
+act log 5 but getting the average based on the activations but based on all of the layers
 """
 
 import os
 # set the GPUs
-os.environ["CUDA_VISIBLE_DEVICES"] = "0,1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "3,4"
 # setting for vllm inference so that it can run in parallel
 os.environ["VLLM_WORKER_MULTIPROC_METHOD"] = "spawn"
 
@@ -16,17 +15,21 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pickle
 from datasets import load_dataset
+from datasets import load_from_disk
+from datasets import Dataset
 
-class ActivationAnalyzer:
+class ActivationAnalyser:
     def __init__(self, model, tokenizer):
         self.tokenizer = tokenizer
         self.model = model
         self.activations = {}
+        self.tally = {}
         self._register_hooks()
     
     def _activation_hook(self, name):
         def hook(module, input, output):
             self.activations[name] = output.detach()
+            self.tally[name] = torch.zeros_like(output.detach()).detach()
         return hook
     
     def _register_hooks(self):
@@ -35,48 +38,79 @@ class ActivationAnalyzer:
             if "mlp." in name:
                 module.register_forward_hook(self._activation_hook(name))  
     
-    def analyze_text(self, prompts, top_k=1000, data_type = "test"):
+    def analyze_text(self, data, top_k=1000):
         self.activations.clear()
         
-        for text in prompts:
-            # print progress
-            print(f"Processing text {text}")
-
-            # format the prompt
-            if data_type == 'test':
-                question = text['question']
-                choices = text['choices']
-            elif data_type == 'train':
-                question = text['train']['question']
-                choices = text['train']['choices']
-
-            prompt = (
-            f"Question: {question}\n\nChoices:\n"
-            f"A. {choices[0]}\nB. {choices[1]}\nC. {choices[2]}\nD. {choices[3]}\n"
-            f"Do not explain and give the answer with strictly one letter from options A, B, C, or D.\nAnswer:"
-            )
-
-            inputs = self.tokenizer(prompt, return_tensors="pt")
+        # runs through all the training data
+        for i,text in enumerate(data):
+            # print progress bar out of total
+            print(f"Processing text {i+1}/{len(data)}")
+            inputs = self.tokenizer(
+                text["text"],
+                return_tensors="pt",
+                padding=True,
+                truncation=True,
+                max_length=10,
+                )
             
             with torch.no_grad():
                 outputs = self.model(**inputs)
             
-        results = {}
-        for name, activation in self.activations.items():
-            # if abs(activation) <= 0.07 then set to 0, else set to 1
-            activation[abs(activation) <= 0.07] = 0
-            activation[activation != 0] = 1
+            # add the activations per text to the tally
+            for name, activation in self.activations.items():
+                activation[abs(activation) <= 0.1] = 0
+                activation[activation != 0] = 1
+                # get the tally
+                self.tally[name] = self.tally[name] + activation.abs().sum(dim=(0, 1))
 
-            # get the tally
-            tally = activation.abs().sum(dim=(0, 1))
             
-            # Get top-k neurons (neurons with the highest tally)
-            top_values, top_indices = torch.topk(tally, top_k)
+            # unload inputs and ouputs from gpu
+            del inputs
+            del outputs
+            torch.cuda.empty_cache()
+        
+
+        # get the topk for the training data 
+
+        results = {}
+
+        for name, tally in self.tally.items():
+            # get the tally
+            ta = tally.abs().sum(dim=(0, 1))
+
+            top_values, top_indices = torch.topk(ta, top_k)
             
             results[name] = {
                 "indices": top_indices.tolist(),
                 "values": top_values.tolist()
             }
+            
+
+        # get the topk for the training data
+        # results = {}
+        # for name, activation in self.activations.items():
+        #     # check the percentage of activations that are less than a value
+        #     # if name == 'model.layers.0.mlp.gate_proj':
+        #     #     print ("total activations: ", activation.numel())
+        #     #     print ("total activations less than: ", (abs(activation) <= 0.1).sum())
+        #     #     print ("percentage of activations less than: ", 100 * (abs(activation) <= 0.1).sum().item()/activation.numel(), "%")
+
+        #     # if abs(activation) <= 0.02 then set to 0, else set to 1
+        #     activation[abs(activation) <= 0.1] = 0
+        #     activation[activation != 0] = 1
+
+        #     # get the tally
+        #     tally = activation.abs().sum(dim=(0, 1))
+            
+        #     # Get top-k neurons (neurons with the highest tally)
+        #     top_values, top_indices = torch.topk(tally, top_k)
+            
+        #     results[name] = {
+        #         "indices": top_indices.tolist(),
+        #         "values": top_values.tolist()
+        #     }
+        
+
         return results
     
     def visualize_activations(self, results, layer_name):
@@ -88,7 +122,7 @@ class ActivationAnalyzer:
         plt.ylabel("Mean Activation")
         plt.show()
 
-# removes all values from dict1 that's in dict2 to isolate the the most used transferred
+# removes all values from dict1 that's in dict2 to isolate the the most used transferred 
 def remove_common_values(dict1, dict2):
     print ("total amount of weights: ", sum(len(d['indices']) for d in dict1.values()))
     removing = 0
@@ -139,26 +173,25 @@ tokenizer.pad_token = tokenizer.eos_token
 tokenizer.padding_side = "right"
 
 # loading the data
-data_name = "cais/mmlu"
-subset_name = "auxiliary_train"
-
-dataset = load_dataset(data_name, subset_name, split = "train")
-dataset = dataset.select(range(1000))
+data_path = "data/Mathematics,1970-2002"
+dataset = load_from_disk(data_path)
+dataset = dataset[:10]["text"]
+dataset = [{"text": text} for text in dataset]
+dataset = Dataset.from_list(dataset)
 
 # active neuron eval
-base_analyzer = ActivationAnalyzer(base_model, tokenizer)
+base_analyser = ActivationAnalyser(base_model, tokenizer)
 
 # get the topk for that single node given maths
 # k set to 1000
-bf = base_analyzer.analyze_text(dataset, top_k=1000, data_type = 'train')
+bf = base_analyser.analyze_text(dataset, top_k=1000)
 
 # store all of the results
 # make sure the file name is correct
-with open('topk/base_auxt.pkl', 'wb') as f:
+with open('topk/base_maths.pkl', 'wb') as f:
     pickle.dump(bf, f)
 
-with open('topk/base_auxt.pkl', 'rb') as f:
+with open('topk/base_maths.pkl', 'rb') as f:
     loaded_dict = pickle.load(f)
-
 
 print ("process complete")
