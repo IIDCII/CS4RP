@@ -45,6 +45,7 @@ class ActivationAnalyser:
         
         # runs through all the training data
         for i, text in enumerate(tqdm(data, desc="Processing texts", unit="text"), ):
+
             inputs = self.tokenizer(
                 text["text"],
                 return_tensors="pt",
@@ -58,19 +59,26 @@ class ActivationAnalyser:
             
             # add the activations per text to the tally
             for name, activation in self.activations.items():
-                # maybe see if doing %1 actually works once you're done
-                activation[abs(activation) <= 0.1] = 0.0
-                activation[activation != 0] = 1.0
-
+                activation = torch.where(
+                    torch.abs(activation) <= 0.1, 
+                    torch.tensor(1.0, device=activation.device), 
+                    torch.tensor(2.0, device=activation.device)
+                )
+                
+                # Sum over dimensions 0 and 1
+                current_sum = activation.sum(dim=(0, 1))
+                
+                # Update tally with running average
                 if i == 0:
-                    tally[name] = activation.abs().sum(dim=(0, 1))
+                    tally[name] = current_sum
                 else:
-                    tally[name] = tally[name] + (abs(activation.abs().sum(dim=(0, 1)) - tally[name]) + 1e-9) / (i + 1)
+                    tally[name] = (tally[name] * i + current_sum) / (i + 1)
                  
             # unload inputs and ouputs from gpu
             del inputs
             del outputs
             torch.cuda.empty_cache()
+
 
         for name, subtal in tally.items():
             top_values, top_indices = torch.topk(subtal, top_k)
