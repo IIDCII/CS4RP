@@ -17,6 +17,8 @@ import pickle
 from datasets import load_dataset
 from datasets import load_from_disk
 from datasets import Dataset
+import time
+from tqdm import tqdm
 
 class ActivationAnalyser:
     def __init__(self, model, tokenizer):
@@ -42,9 +44,7 @@ class ActivationAnalyser:
         self.activations.clear()
         
         # runs through all the training data
-        for i,text in enumerate(data):
-            # print progress bar out of total
-            print(f"Processing text {i+1}/{len(data)}")
+        for text in tqdm(data, desc="Processing texts", unit="text"):
             inputs = self.tokenizer(
                 text["text"],
                 return_tensors="pt",
