@@ -29,9 +29,7 @@ class ActivationAnalyser:
     
     def _activation_hook(self, name):
         def hook(module, input, output):
-            if name not in self.activations:
-                self.activations[name] = output.detach()
-            self.activations[name] = self.activations[name] + output.detach()
+            self.activations[name] = output.detach()
         return hook
     
     def _register_hooks(self):
@@ -42,9 +40,11 @@ class ActivationAnalyser:
     
     def analyze_text(self, data, top_k=1000):
         self.activations.clear()
+        tally = {}
+        results = {}
         
         # runs through all the training data
-        for text in tqdm(data, desc="Processing texts", unit="text"):
+        for i, text in enumerate(tqdm(data, desc="Processing texts", unit="text"), ):
             inputs = self.tokenizer(
                 text["text"],
                 return_tensors="pt",
@@ -58,22 +58,23 @@ class ActivationAnalyser:
             
             # add the activations per text to the tally
             for name, activation in self.activations.items():
-                activation[abs(activation)%1 <= 0.15] = 0
-                activation[activation != 0] += 1
-                
+                # maybe see if doing %1 actually works once you're done
+                activation[abs(activation) <= 0.1] = 0.0
+                activation[activation != 0] = 1.0
+
+                if i == 0:
+                    tally[name] = activation.abs().sum(dim=(0, 1))
+                else:
+                    tally[name] = tally[name] + (abs(activation.abs().sum(dim=(0, 1)) - tally[name]) + 1e-9) / (i + 1)
+                 
             # unload inputs and ouputs from gpu
             del inputs
             del outputs
             torch.cuda.empty_cache()
 
-        results = {}
+        for name, subtal in tally.items():
+            top_values, top_indices = torch.topk(subtal, top_k)
 
-        for name, activation in self.activations.items():
-            # get the activation
-            tally = activation.abs().mean(dim=(0, 1))
-
-            top_values, top_indices = torch.topk(tally, top_k)
-            
             results[name] = {
                 "indices": top_indices.tolist(),
                 "values": top_values.tolist()
@@ -109,7 +110,7 @@ tokenizer.padding_side = "right"
 # loading the data
 data_path = "data/Mathematics,1970-2002"
 dataset = load_from_disk(data_path)
-dataset = dataset[:10]["text"]
+dataset = dataset[:2]["text"]
 dataset = [{"text": text} for text in dataset]
 dataset = Dataset.from_list(dataset)
 

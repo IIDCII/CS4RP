@@ -1,10 +1,15 @@
 import torch
 
-# Simulating a tensor of shape [batch_size=4, channels=3, height=5, width=5]
-activation = torch.randn(4, 3, 5, 5)
+# 2 tokens, 2 docs, 3 nodes
+# should be size 1,2,3
 
-# Compute mean absolute activation per neuron
-mean_activation = activation.abs().mean(dim=(0, 1))
+t = torch.tensor([[[1.,2.,3.],
+                   [4.,5.,6.],
+                   [7.,8.,9.],
+                   [10.,11.,12.]]])
 
+print (t.shape)
 
-print("Shape of mean activation:", mean_activation)
+mean = t.abs().mean(dim=(0, 1))
+
+print (mean)
