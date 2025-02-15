@@ -4,7 +4,7 @@ act log 5 but getting the average based on the activations but based on all of t
 
 import os
 # set the GPUs
-os.environ["CUDA_VISIBLE_DEVICES"] = "3,4"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0,1,2,3"
 # setting for vllm inference so that it can run in parallel
 os.environ["VLLM_WORKER_MULTIPROC_METHOD"] = "spawn"
 
@@ -70,7 +70,7 @@ class ActivationAnalyser:
 
         for name, activation in self.activations.items():
             # get the activation
-            tally = activation.abs().sum(dim=(0, 1)).detach()
+            tally = activation.abs().mean(dim=(0, 1))
 
             top_values, top_indices = torch.topk(tally, top_k)
             
