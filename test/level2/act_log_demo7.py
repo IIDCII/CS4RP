@@ -42,7 +42,7 @@ class ActivationAnalyser:
         self.activations.clear()
         tally = {}
         results = {}
-        
+
         # runs through all the training data
         for i, text in enumerate(tqdm(data, desc="Processing texts", unit="text"), ):
 
@@ -59,6 +59,7 @@ class ActivationAnalyser:
             
             # add the activations per text to the tally
             for name, activation in self.activations.items():
+                # setting the value to 1 or 2 whether it's greater or smaller than 0.1
                 activation = torch.where(
                     torch.abs(activation) <= 0.1, 
                     torch.tensor(1.0, device=activation.device), 
@@ -116,9 +117,9 @@ tokenizer.pad_token = tokenizer.eos_token
 tokenizer.padding_side = "right"
 
 # loading the data
-data_path = "data/Mathematics,1970-2002"
+data_path = "data/Philosophy,1970-2022"
 dataset = load_from_disk(data_path)
-dataset = dataset[:2]["text"]
+dataset = dataset[:1000]["text"]
 dataset = [{"text": text} for text in dataset]
 dataset = Dataset.from_list(dataset)
 
@@ -131,10 +132,10 @@ bf = base_analyser.analyze_text(dataset, top_k=1000)
 
 # store all of the results
 # make sure the file name is correct
-with open('topk/base_maths.pkl', 'wb') as f:
+with open('topk/base_philosophy.pkl', 'wb') as f:
     pickle.dump(bf, f)
 
-with open('topk/base_maths.pkl', 'rb') as f:
+with open('topk/base_philosophy.pkl', 'rb') as f:
     loaded_dict = pickle.load(f)
 
 print ("process complete")
