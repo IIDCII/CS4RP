@@ -111,6 +111,24 @@ class ActivationAnalyser:
         plt.ylabel("Mean Activation")
         plt.show()
 
+def load_data(name = "", subset_name="", data_range = 10, data_type = "test"):
+    if data_type == "test":
+        data_path = name
+        dataset = load_from_disk(data_path)
+        dataset = dataset[:data_range]["text"]
+        dataset = [{"text": text} for text in dataset]
+        dataset = Dataset.from_list(dataset)
+
+    elif data_type == "train":
+        data_name = name
+        subset_name = subset_name
+        dataset = load_dataset(data_name, subset_name, split = "train")
+        dataset = dataset.select(range(data_range))
+
+    return dataset
+
+
+
 # loading the model
 base_model_name = "Llama-3.1-8B-Instruct"
 
@@ -127,19 +145,8 @@ tokenizer = AutoTokenizer.from_pretrained(base_model_name, trust_remote_code=Tru
 tokenizer.pad_token = tokenizer.eos_token
 tokenizer.padding_side = "right"
 
-# loading the data (test)
-# data_path = "data/Philosophy,1970-2022"
-# dataset = load_from_disk(data_path)
-# dataset = dataset[:1000]["text"]
-# dataset = [{"text": text} for text in dataset]
-# dataset = Dataset.from_list(dataset)
-
-# loading the data (train)
-# loading the data
-data_name = "cais/mmlu"
-subset_name = "auxiliary_train"
-dataset = load_dataset(data_name, subset_name, split = "train")
-dataset = dataset.select(range(10))
+# load the data
+dataset = load_data()
 
 # active neuron eval
 base_analyser = ActivationAnalyser(base_model, tokenizer)
