@@ -154,7 +154,7 @@ data_name = "cais/mmlu"
 subset_name = "auxiliary_train"
 
 dataset = load_dataset(data_name, subset_name, split = "train")
-dataset = dataset.select(range(10))
+dataset = dataset.select(range(1))
 
 # active neuron eval
 base_analyzer = ActivationAnalyzer(base_model, tokenizer)

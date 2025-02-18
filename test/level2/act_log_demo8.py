@@ -101,15 +101,6 @@ class ActivationAnalyser:
             }
             
         return results
-    
-    def visualize_activations(self, results, layer_name):
-        plt.figure(figsize=(10, 6))
-        plt.bar(range(len(results[layer_name]["values"])), 
-                results[layer_name]["values"])
-        plt.title(f"Top Neuron Activations in {layer_name}")
-        plt.xlabel("Neuron Index")
-        plt.ylabel("Mean Activation")
-        plt.show()
 
 def load_data(name = "", subset_name="", data_range = 10, data_type = "test"):
     if data_type == "test":
@@ -146,7 +137,7 @@ tokenizer.pad_token = tokenizer.eos_token
 tokenizer.padding_side = "right"
 
 # load the data
-dataset = load_data()
+dataset = load_data(name = "cais/mmlu", subset_name = "auxiliary_train", data_range = 1000, data_type = "train")
 
 # active neuron eval
 base_analyser = ActivationAnalyser(base_model, tokenizer)
@@ -157,10 +148,10 @@ bf = base_analyser.analyze_text(dataset, top_k=1000, data_type = "train")
 
 # store all of the results
 # make sure the file name is correct
-with open('topk/base_test.pkl', 'wb') as f:
+with open('topk/base_auxt.pkl', 'wb') as f:
     pickle.dump(bf, f)
 
-with open('topk/base_test.pkl', 'rb') as f:
+with open('topk/base_auxt.pkl', 'rb') as f:
     loaded_dict = pickle.load(f)
 
 print ("process complete")
