@@ -1,15 +1,31 @@
-import torch
+import numpy as np
 
-# 2 tokens, 2 docs, 3 nodes
-# should be size 1,2,3
+# Example 2D matrix
+matrix = np.array([[1, 5, 3],
+                   [7, 2, 9],
+                   [4, 6, 8]])
 
-t = torch.tensor([[[1.,2.,3.],
-                   [4.,5.,6.],
-                   [7.,8.,9.],
-                   [10.,11.,12.]]])
+# Number of top elements to find
+k = 3
 
-print (t.shape)
+# Flatten the matrix
+flattened = matrix.flatten()
 
-mean = t.abs().mean(dim=(0, 1))
+# Get the indices of the top-k elements in the flattened array
+# Using np.argpartition for better performance with large arrays
+flattened_indices = np.argpartition(flattened, -k)[-k:]
 
-print (mean)
+# Sort the indices to get the top-k elements in order
+flattened_indices_sorted = flattened_indices[np.argsort(flattened[flattened_indices])]
+
+# Get the top-k elements
+top_k_elements = flattened[flattened_indices_sorted]
+
+# Convert the flattened indices back to 2D indices
+row_indices, col_indices = np.unravel_index(flattened_indices_sorted, matrix.shape)
+
+# Combine the row and column indices into a list of tuples
+top_k_indices = list(zip(row_indices, col_indices))
+
+print("Top-k elements:", top_k_elements)
+print("Top-k indices (row, col):", top_k_indices)

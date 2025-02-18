@@ -154,26 +154,26 @@ with open('topk/base_auxt.pkl', 'rb') as f:
     topk_base_auxt = pickle.load(f)
 # with open('topk/base_maths.pkl', 'rb') as f:
 #     topk_base_maths = pickle.load(f)
-# with open('topk/base_physics.pkl', 'rb') as f:
-#     topk_base_physics = pickle.load(f)
-with open('topk/base_philosophy.pkl', 'rb') as f:
-    topk_base_philosophy = pickle.load(f)
+with open('topk/base_physics.pkl', 'rb') as f:
+    topk_base_physics = pickle.load(f)
+# with open('topk/base_philosophy.pkl', 'rb') as f:
+#     topk_base_philosophy = pickle.load(f)
 
-topk_act = remove_common_values(topk_base_philosophy,topk_base_auxt)
+topk_act = remove_common_values(topk_base_physics,topk_base_auxt)
 # topk_act = topk_base_maths
 
 # adjust the topk
 topk_act = adjust_topk(topk_act, 10, mink = 3)
 
-print ("disabling neurons")
-# disable the neurons
-for i in range(len(topk_act)):
-    neurons_to_disable = list(topk_act.items())[i][1]['indices']
-    # just testing the base with nothing deleted
-    # neurons_to_disable = []
-    layer_name = list(topk_act.items())[i][0]
-    manipulator.disable_neurons(layer_name, neurons_to_disable)
-print ("disabling complete")
+# print ("disabling neurons")
+# # disable the neurons
+# for i in range(len(topk_act)):
+#     neurons_to_disable = list(topk_act.items())[i][1]['indices']
+#     # just testing the base with nothing deleted
+#     # neurons_to_disable = []
+#     layer_name = list(topk_act.items())[i][0]
+#     manipulator.disable_neurons(layer_name, neurons_to_disable)
+# print ("disabling complete")
 
 # loading the data
 data_name = "cais/mmlu"
