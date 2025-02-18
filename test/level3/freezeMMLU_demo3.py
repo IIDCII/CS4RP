@@ -3,7 +3,7 @@
 
 import os
 # set the GPUs
-os.environ["CUDA_VISIBLE_DEVICES"] = "4,5"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0,1,2,3"
 # setting for vllm inference so that it can run in parallel
 os.environ["VLLM_WORKER_MULTIPROC_METHOD"] = "spawn"
 
@@ -14,13 +14,6 @@ from datasets import load_dataset
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle
-
-with open('topk/base_auxt.pkl', 'rb') as f:
-    topk_base_auxt = pickle.load(f)
-with open('topk/base_hsm.pkl', 'rb') as f:
-    topk_base_hsm = pickle.load(f)
-with open('topk/base_hsp.pkl', 'rb') as f:
-    topk_base_hsp = pickle.load(f)
 
 
 class NeuronManipulator:
@@ -132,9 +125,9 @@ def remove_common_values(dict1, dict2):
     return dict1
 
 # adjusting the top k for freezing weights
-def adjust_topk(data,topk: int):
+def adjust_topk(data,topk: int, mink = 0):
     for name in data:
-        data[name]['indices'] = data[name]['indices'][:topk]
+        data[name]['indices'] = data[name]['indices'][mink:topk]
     return data
 
 # loading the model
@@ -157,10 +150,20 @@ tokenizer.padding_side = "right"
 manipulator = NeuronManipulator(base_model,tokenizer)
 
 # make sure to turn these off since they will affect the results
-topk_act = remove_common_values(topk_base_hsm,topk_base_auxt)
+with open('topk/base_auxt.pkl', 'rb') as f:
+    topk_base_auxt = pickle.load(f)
+# with open('topk/base_maths.pkl', 'rb') as f:
+#     topk_base_maths = pickle.load(f)
+# with open('topk/base_physics.pkl', 'rb') as f:
+#     topk_base_physics = pickle.load(f)
+with open('topk/base_philosophy.pkl', 'rb') as f:
+    topk_base_philosophy = pickle.load(f)
+
+topk_act = remove_common_values(topk_base_philosophy,topk_base_auxt)
+# topk_act = topk_base_maths
 
 # adjust the topk
-topk_act = adjust_topk(topk_act, 3)
+topk_act = adjust_topk(topk_act, 10, mink = 3)
 
 print ("disabling neurons")
 # disable the neurons
@@ -174,7 +177,7 @@ print ("disabling complete")
 
 # loading the data
 data_name = "cais/mmlu"
-subset_name = "high_school_physics"
+subset_name = "high_school_mathematics"
 dataset = load_dataset(data_name, subset_name, split = "test")
 # set this for auxt
 # dataset = dataset.select(range(200))
