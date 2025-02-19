@@ -10,7 +10,7 @@ os.environ["VLLM_WORKER_MULTIPROC_METHOD"] = "spawn"
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training, PeftModel
-from datasets import load_dataset
+from datasets import load_dataset, concatenate_datasets
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle
@@ -153,33 +153,41 @@ manipulator = NeuronManipulator(base_model,tokenizer)
 with open('topk/base_auxt.pkl', 'rb') as f:
     topk_base_auxt = pickle.load(f)
 # with open('topk/base_maths.pkl', 'rb') as f:
-#     topk_base_maths = pickle.load(f)
-with open('topk/base_physics.pkl', 'rb') as f:
-    topk_base_physics = pickle.load(f)
-# with open('topk/base_philosophy.pkl', 'rb') as f:
-#     topk_base_philosophy = pickle.load(f)
+#     topk_base = pickle.load(f)
+# with open('topk/base_physics.pkl', 'rb') as f:
+#     topk_base = pickle.load(f)
+with open('topk/base_philosophy.pkl', 'rb') as f:
+    topk_base = pickle.load(f)
 
-topk_act = remove_common_values(topk_base_physics,topk_base_auxt)
-# topk_act = topk_base_maths
+topk_act = remove_common_values(topk_base,topk_base_auxt)
 
 # adjust the topk
-topk_act = adjust_topk(topk_act, 10, mink = 3)
+topk_act = adjust_topk(topk_act, 500, mink = 0)
 
-# print ("disabling neurons")
-# # disable the neurons
-# for i in range(len(topk_act)):
-#     neurons_to_disable = list(topk_act.items())[i][1]['indices']
-#     # just testing the base with nothing deleted
-#     # neurons_to_disable = []
-#     layer_name = list(topk_act.items())[i][0]
-#     manipulator.disable_neurons(layer_name, neurons_to_disable)
-# print ("disabling complete")
+print ("disabling neurons")
+# disable the neurons
+for i in range(len(topk_act)):
+    neurons_to_disable = list(topk_act.items())[i][1]['indices']
+    # just testing the base with nothing deleted
+    # neurons_to_disable = []
+    layer_name = list(topk_act.items())[i][0]
+    manipulator.disable_neurons(layer_name, neurons_to_disable)
+print ("disabling complete")
 
-# loading the data
+# Define the dataset name and the subsets you want to load
 data_name = "cais/mmlu"
-subset_name = "high_school_mathematics"
-dataset = load_dataset(data_name, subset_name, split = "test")
-# set this for auxt
-# dataset = dataset.select(range(200))
+# subset_names = ["high_school_physics", "college_physics"] # physics
+# subset_names = ["high_school_mathematics", "college_mathematics","elementary_mathematics","abstract_algebra","professional_accounting"] # maths
+# subset_names = ["high_school_mathematics"] # maths
+subset_names = ["philosophy"] # philosophy
 
-manipulator.MMLU(dataset, "test")
+# Load and concatenate the subsets
+datasets = []
+for subset_name in subset_names:
+    dataset = load_dataset(data_name, subset_name, split="test")
+    datasets.append(dataset)
+
+# Combine all subsets into a single dataset
+combined_dataset = concatenate_datasets(datasets)
+
+manipulator.MMLU(combined_dataset, "test")
