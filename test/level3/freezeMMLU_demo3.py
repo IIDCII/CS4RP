@@ -110,18 +110,19 @@ class NeuronManipulator:
 
 # removes all values from dict1 that's in dict2 to isolate the the most used transferred 
 def remove_common_values(dict1, dict2):
-    print ("total amount of weights: ", sum(len(d['indices']) for d in dict1.values()))
-    removing = 0
     for name in dict1:
-        if name in dict2:
-            indices_to_remove = set(dict2[name]['indices']) & set(dict1[name]['indices'])
-            removing += len(indices_to_remove)
-            dict1[name]['values'] = [v for i, v in zip(dict1[name]['indices'], dict1[name]['values']) 
-                                    if i not in indices_to_remove]
-            dict1[name]['indices'] = [i for i in dict1[name]['indices'] if i not in indices_to_remove]
-    
-    print ("Removing ",removing, " from the total")
-    print ("final number of weights: ", sum(len(d['indices']) for d in dict1.values()))
+        indices_to_remove = set(dict2[name]['indices']).intersection(set(dict1[name]['indices']))
+        # lowkey redundant not using for now
+        dict1[name]['values'] = [v for i, v in zip(dict1[name]['indices'], dict1[name]['values']) 
+                                if i not in indices_to_remove]
+        # fix
+        dict1[name]['indices'] = [i for i in dict1[name]['indices'] if i not in indices_to_remove]
+        
+        
+        if name == 'model.layers.0.mlp.gate_proj':
+            print (dict1[name]['indices'])
+            print (dict2[name]['indices'])
+            print (indices_to_remove)
     return dict1
 
 # adjusting the top k for freezing weights
@@ -152,21 +153,23 @@ manipulator = NeuronManipulator(base_model,tokenizer)
 # make sure to turn these off since they will affect the results
 with open('topk/base_auxt.pkl', 'rb') as f:
     topk_base_auxt = pickle.load(f)
-# with open('topk/base_maths.pkl', 'rb') as f:
-#     topk_base = pickle.load(f)
-# with open('topk/base_physics.pkl', 'rb') as f:
-#     topk_base = pickle.load(f)
+with open('topk/base_maths.pkl', 'rb') as f:
+    topk_base_maths = pickle.load(f)
+with open('topk/base_physics.pkl', 'rb') as f:
+    topk_base_physics = pickle.load(f)
 with open('topk/base_philosophy.pkl', 'rb') as f:
-    topk_base = pickle.load(f)
+    topk_base_philosophy = pickle.load(f)
 
-topk_act = remove_common_values(topk_base,topk_base_auxt)
+topk_act = remove_common_values(topk_base_maths,topk_base_auxt)
 
 # adjust the topk
-topk_act = adjust_topk(topk_act, 500, mink = 0)
+topk_act = adjust_topk(topk_act, 10, mink = 0)
 
 print ("disabling neurons")
+count = 0
 # disable the neurons
 for i in range(len(topk_act)):
+    count += len(list(topk_act.items())[i][1]['indices'])
     neurons_to_disable = list(topk_act.items())[i][1]['indices']
     # just testing the base with nothing deleted
     # neurons_to_disable = []
@@ -174,20 +177,22 @@ for i in range(len(topk_act)):
     manipulator.disable_neurons(layer_name, neurons_to_disable)
 print ("disabling complete")
 
-# Define the dataset name and the subsets you want to load
-data_name = "cais/mmlu"
-# subset_names = ["high_school_physics", "college_physics"] # physics
+print ("total number of neurons disabled: ", count)
+
+# # Define the dataset name and the subsets you want to load
+# data_name = "cais/mmlu"
+# # subset_names = ["high_school_physics", "college_physics"] # physics
 # subset_names = ["high_school_mathematics", "college_mathematics","elementary_mathematics","abstract_algebra","professional_accounting"] # maths
-# subset_names = ["high_school_mathematics"] # maths
-subset_names = ["philosophy"] # philosophy
+# # subset_names = ["high_school_mathematics"] # maths
+# # subset_names = ["philosophy"] # philosophy
 
-# Load and concatenate the subsets
-datasets = []
-for subset_name in subset_names:
-    dataset = load_dataset(data_name, subset_name, split="test")
-    datasets.append(dataset)
+# # Load and concatenate the subsets
+# datasets = []
+# for subset_name in subset_names:
+#     dataset = load_dataset(data_name, subset_name, split="test")
+#     datasets.append(dataset)
 
-# Combine all subsets into a single dataset
-combined_dataset = concatenate_datasets(datasets)
+# # Combine all subsets into a single dataset
+# combined_dataset = concatenate_datasets(datasets)
 
-manipulator.MMLU(combined_dataset, "test")
+# manipulator.MMLU(combined_dataset, "test")
