@@ -111,18 +111,13 @@ class NeuronManipulator:
 # removes all values from dict1 that's in dict2 to isolate the the most used transferred 
 def remove_common_values(dict1, dict2):
     for name in dict1:
-        indices_to_remove = set(dict2[name]['indices']).intersection(set(dict1[name]['indices']))
+        indices_to_remove = set(dict1[name]['indices']).intersection(set(dict2[name]['indices']))
+        
         # lowkey redundant not using for now
         dict1[name]['values'] = [v for i, v in zip(dict1[name]['indices'], dict1[name]['values']) 
                                 if i not in indices_to_remove]
         # fix
         dict1[name]['indices'] = [i for i in dict1[name]['indices'] if i not in indices_to_remove]
-        
-        
-        if name == 'model.layers.0.mlp.gate_proj':
-            print (dict1[name]['indices'])
-            print (dict2[name]['indices'])
-            print (indices_to_remove)
     return dict1
 
 # adjusting the top k for freezing weights
@@ -160,10 +155,15 @@ with open('topk/base_physics.pkl', 'rb') as f:
 with open('topk/base_philosophy.pkl', 'rb') as f:
     topk_base_philosophy = pickle.load(f)
 
-topk_act = remove_common_values(topk_base_maths,topk_base_auxt)
+k = 10
+mk = 0
 
 # adjust the topk
-topk_act = adjust_topk(topk_act, 10, mink = 0)
+topk_act = adjust_topk(topk_base_maths, k, mink = mk)
+topk_sub = adjust_topk(topk_base_auxt, k, mink = mk)
+
+topk_act = remove_common_values(topk_act,topk_sub)
+
 
 print ("disabling neurons")
 count = 0
