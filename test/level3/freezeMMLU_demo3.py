@@ -178,7 +178,7 @@ def run_analysis(subset_dict, topk_base, test_ranges):
                             manipulator.MMLU(combined_dataset, "test")
                 else:
                     for topk_name in topk_base:
-                        if topk_name != "auxt":      
+                        if topk_name != "auxt" and topk_name != name:      
                             print (topk_name ," sub ", name)
                             
                             topk_act = adjust_topk(topk_base[topk_name], test[1], test[0])
