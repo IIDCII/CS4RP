@@ -2,6 +2,7 @@
 # look at CS4RP scientific process ## lvl2 steps for more info
 
 import os
+from re import sub
 # set the GPUs
 os.environ["CUDA_VISIBLE_DEVICES"] = "0,1,2,3"
 # setting for vllm inference so that it can run in parallel
@@ -53,12 +54,16 @@ class NeuronManipulator:
                 if n not in neuron_indices
             ]
     
+    def reset_all_neurons(self):
+        """Reset all disabled neurons, re-enabling them"""
+        self.disabled_neurons.clear()
+    
     def MMLU(self, dataset, data_type = "test"):    
         correct = 0
         total = 0
 
         for item in dataset:
-            if total%50 == 0:
+            if total % 150 == 0:
                 print(correct, " correct out of ", total)
             
             # changing retrieval based on the data type
@@ -70,7 +75,6 @@ class NeuronManipulator:
                 question = item['train']['question']
                 choices = item['train']['choices']
                 answer = item['train']['answer']
-
 
             prompt = (
                     f"Question: {question}\n\nChoices:\n"
@@ -105,7 +109,7 @@ class NeuronManipulator:
                 pass
             total += 1
         
-        print ("MMLU score: ", (correct/total) * 100)
+        print ("MMLU score: ", (correct/total) * 100, "\n----------")
 
 
 # removes all values from dict1 that's in dict2 to isolate the the most used transferred 
@@ -125,6 +129,67 @@ def adjust_topk(data,topk: int, mink = 0):
     for name in data:
         data[name]['indices'] = data[name]['indices'][mink:topk]
     return data
+
+
+
+
+# analysis
+def disable(topk_act):
+    count = 0
+    for i in range(len(topk_act)):
+        count += len(list(topk_act.items())[i][1]['indices'])
+        neurons_to_disable = list(topk_act.items())[i][1]['indices']
+        layer_name = list(topk_act.items())[i][0]
+        manipulator.disable_neurons(layer_name, neurons_to_disable) 
+    print ("total number of neurons disabled: ", count)
+
+
+def run_analysis(subset_dict, topk_base, test_ranges):
+    for name in subset_dict:
+        print ("----------------  testing on mmlu ", name)
+        
+        # setting up the data for the test
+        datasets = []
+        for subset in subset_dict[name]:
+            dataset = load_dataset("cais/mmlu", subset, split="test")
+            datasets.append(dataset)
+        combined_dataset = concatenate_datasets(datasets)
+
+        # for each get the base results
+        print("base mmlu with no nodes turned off")
+        manipulator.reset_all_neurons()
+        manipulator.MMLU(combined_dataset, "test")
+        
+        for test in test_ranges:
+            print ("----------------  testing on topk range ", test)
+            for i in range(2):
+                if i == 0:
+                    for topk_name in topk_base:
+                        if topk_name != "auxt":
+                            print (topk_name ," sub auxt")
+                            
+                            topk_act = adjust_topk(topk_base[topk_name], test[1], test[0])
+                            topk_sub = adjust_topk(topk_base["auxt"], test[1], test[0])
+                            topk_act = remove_common_values(topk_act,topk_sub)
+
+                            manipulator.reset_all_neurons()
+                            disable(topk_act)
+                            
+                            manipulator.MMLU(combined_dataset, "test")
+                else:
+                    for topk_name in topk_base:
+                        if topk_name != "auxt":      
+                            print (topk_name ," sub ", name)
+                            
+                            topk_act = adjust_topk(topk_base[topk_name], test[1], test[0])
+                            topk_sub = adjust_topk(topk_base[name], test[1], test[0])
+                            topk_act = remove_common_values(topk_act,topk_sub)
+                            
+                            manipulator.reset_all_neurons()
+                            disable(topk_act)
+                            
+                            manipulator.MMLU(combined_dataset, "test")
+
 
 # loading the model
 base_model_name = "Llama-3.1-8B-Instruct"
@@ -155,35 +220,52 @@ with open('topk/base_physics.pkl', 'rb') as f:
 with open('topk/base_philosophy.pkl', 'rb') as f:
     topk_base_philosophy = pickle.load(f)
 
-k = 10
-mk = 0
-
-# adjust the topk
-topk_act = adjust_topk(topk_base_maths, k, mink = mk)
-topk_sub = adjust_topk(topk_base_auxt, k, mink = mk)
-
-topk_act = remove_common_values(topk_act,topk_sub)
 
 
-print ("disabling neurons")
-count = 0
-# disable the neurons
-for i in range(len(topk_act)):
-    count += len(list(topk_act.items())[i][1]['indices'])
-    neurons_to_disable = list(topk_act.items())[i][1]['indices']
-    # just testing the base with nothing deleted
-    # neurons_to_disable = []
-    layer_name = list(topk_act.items())[i][0]
-    manipulator.disable_neurons(layer_name, neurons_to_disable)
-print ("disabling complete")
 
-print ("total number of neurons disabled: ", count)
+"""
+RUN ANALYSIS FOR EVERY VARIATION
+"""
+subset_dict = {
+    "physics": ["high_school_physics", "college_physics"],
+    "maths": ["high_school_mathematics","college_mathematics","elementary_mathematics","abstract_algebra","professional_accounting"],
+    "philosophy": ["philosophy"],
+}
+
+topk_base = {
+    "maths": topk_base_maths,
+    "physics": topk_base_physics,
+    "philosophy": topk_base_philosophy,
+    "auxt": topk_base_auxt,
+}
+
+test_ranges = [(0,10),(0,50),(0,100),(3,10),(10,100)]
+
+run_analysis(subset_dict= subset_dict, topk_base= topk_base, test_ranges= test_ranges)
+
+print("process complete")
+
+
+"""
+RUN ANALYSIS FOR ONE VARIATION
+"""
+
+# k = 10
+# mk = 0
+
+# # adjust the topk
+# topk_act = adjust_topk(topk_base_maths, k, mink = mk)
+# topk_sub = adjust_topk(topk_base_auxt, k, mink = mk)
+
+# # topk_act = remove_common_values(topk_act,topk_sub)
+
+# disable(topk_act)
 
 # # Define the dataset name and the subsets you want to load
 # data_name = "cais/mmlu"
 # # subset_names = ["high_school_physics", "college_physics"] # physics
-# subset_names = ["high_school_mathematics", "college_mathematics","elementary_mathematics","abstract_algebra","professional_accounting"] # maths
-# # subset_names = ["high_school_mathematics"] # maths
+# # subset_names = ["high_school_mathematics", "college_mathematics","elementary_mathematics","abstract_algebra","professional_accounting"] # maths
+# subset_names = ["high_school_mathematics"] # maths
 # # subset_names = ["philosophy"] # philosophy
 
 # # Load and concatenate the subsets
@@ -196,3 +278,9 @@ print ("total number of neurons disabled: ", count)
 # combined_dataset = concatenate_datasets(datasets)
 
 # manipulator.MMLU(combined_dataset, "test")
+
+# manipulator.reset_all_neurons()
+
+# manipulator.MMLU(combined_dataset, "test")
+
+# print ("single process complete")

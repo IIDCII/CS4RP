@@ -12,6 +12,5 @@ llama-2-7b-merged
 llama-2-7b-enhanced
 llama-2-7b-hf
 results_modified
-output.log
 topk
 output.png
