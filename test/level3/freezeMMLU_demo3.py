@@ -15,6 +15,7 @@ from datasets import load_dataset, concatenate_datasets
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle
+import copy
 
 
 class NeuronManipulator:
@@ -63,8 +64,8 @@ class NeuronManipulator:
         total = 0
 
         for item in dataset:
-            if total % 150 == 0:
-                print(correct, " correct out of ", total)
+            # if total % 150 == 0:
+            #     print(correct, " correct out of ", total)
             
             # changing retrieval based on the data type
             if data_type == 'test':
@@ -109,27 +110,48 @@ class NeuronManipulator:
                 pass
             total += 1
         
-        print ("MMLU score: ", (correct/total) * 100, "\n----------")
+        print ("MMLU score: ", (correct/total) * 100)
+        return correct/total * 100
 
 
 # removes all values from dict1 that's in dict2 to isolate the the most used transferred 
 def remove_common_values(dict1, dict2):
+    # Create a new dictionary to store the result
+    result = {}
+    
     for name in dict1:
-        indices_to_remove = set(dict1[name]['indices']).intersection(set(dict2[name]['indices']))
-        
-        # lowkey redundant not using for now
-        dict1[name]['values'] = [v for i, v in zip(dict1[name]['indices'], dict1[name]['values']) 
-                                if i not in indices_to_remove]
-        # fix
-        dict1[name]['indices'] = [i for i in dict1[name]['indices'] if i not in indices_to_remove]
-    return dict1
+        if name in dict2:
+            # Find common indices to remove
+            indices_to_remove = set(dict1[name]['indices']).intersection(set(dict2[name]['indices']))
+            
+            # Create new lists for indices and values, excluding common indices
+            new_indices = [i for i in dict1[name]['indices'] if i not in indices_to_remove]
+            new_values = [v for i, v in zip(dict1[name]['indices'], dict1[name]['values']) 
+                          if i not in indices_to_remove]
+            
+            # Add the modified entry to the result dictionary
+            result[name] = {
+                'indices': new_indices,
+                'values': new_values,
+            }
+        else:
+            result[name] = dict1[name]
+    
+    return result
 
 # adjusting the top k for freezing weights
-def adjust_topk(data,topk: int, mink = 0):
+def adjust_topk(data, topk: int, mink=0):
+    # Create a new dictionary to store the result
+    result = {}
+    
     for name in data:
-        data[name]['indices'] = data[name]['indices'][mink:topk]
-    return data
-
+        # Create a new entry with adjusted indices
+        result[name] = {
+            'indices': data[name]['indices'][mink:topk],  # Slice the indices
+            'values': data[name]['values'][mink:topk],    # Slice the values
+        }
+    
+    return result
 
 
 
@@ -144,9 +166,9 @@ def disable(topk_act):
     print ("total number of neurons disabled: ", count)
 
 
-def run_analysis(subset_dict, topk_base, test_ranges):
+def run_analysis(subset_dict, topk_base, test_ranges, runs = 3):
     for name in subset_dict:
-        print ("----------------  testing on mmlu ", name)
+        print ("------------------------ testing on mmlu ", name)
         
         # setting up the data for the test
         datasets = []
@@ -157,38 +179,51 @@ def run_analysis(subset_dict, topk_base, test_ranges):
 
         # for each get the base results
         print("base mmlu with no nodes turned off")
-        manipulator.reset_all_neurons()
-        manipulator.MMLU(combined_dataset, "test")
+        result = 0
+        for _ in range(runs):
+            manipulator = NeuronManipulator(base_model,tokenizer)
+            manipulator.reset_all_neurons()
+            result += manipulator.MMLU(combined_dataset, "test")
+        print ("avg mmlu score: ", result/runs, "\n------------")
         
-        for test in test_ranges:
-            print ("----------------  testing on topk range ", test)
+        for trange in test_ranges:
+            print ("-------------------  testing on topk range k = ", trange[1], "mk = ", trange[0])
             for i in range(2):
                 if i == 0:
                     for topk_name in topk_base:
                         if topk_name != "auxt":
+                            result  = 0
                             print (topk_name ," sub auxt")
-                            
-                            topk_act = adjust_topk(topk_base[topk_name], test[1], test[0])
-                            topk_sub = adjust_topk(topk_base["auxt"], test[1], test[0])
-                            topk_act = remove_common_values(topk_act,topk_sub)
+                            for _ in range(runs):
+                                
+                                topk_act = adjust_topk(topk_base[topk_name], trange[1], mink = trange[0])
+                                topk_sub = adjust_topk(topk_base["auxt"], trange[1], mink = trange[0])
+                                topk_act = remove_common_values(topk_act,topk_sub)
 
-                            manipulator.reset_all_neurons()
-                            disable(topk_act)
-                            
-                            manipulator.MMLU(combined_dataset, "test")
+                                manipulator = NeuronManipulator(base_model,tokenizer)
+                                manipulator.reset_all_neurons()
+                                disable(topk_act)
+                                
+                                result += manipulator.MMLU(combined_dataset, "test")
+                            print ("avg mmlu score: ", result/runs, "\n------------")
                 else:
                     for topk_name in topk_base:
                         if topk_name != "auxt" and topk_name != name:      
-                            print (topk_name ," sub ", name)
-                            
-                            topk_act = adjust_topk(topk_base[topk_name], test[1], test[0])
-                            topk_sub = adjust_topk(topk_base[name], test[1], test[0])
-                            topk_act = remove_common_values(topk_act,topk_sub)
-                            
-                            manipulator.reset_all_neurons()
-                            disable(topk_act)
-                            
-                            manipulator.MMLU(combined_dataset, "test")
+                            result  = 0
+                            for _ in range(runs):
+                                print (topk_name ," sub ", name)
+                                
+                                topk_act = adjust_topk(topk_base[topk_name], trange[1], mink = trange[0])
+                                topk_sub = adjust_topk(topk_base[name], trange[1], mink = trange[0])
+                                topk_act = remove_common_values(topk_act,topk_sub)
+
+                                manipulator = NeuronManipulator(base_model,tokenizer)
+                                manipulator.reset_all_neurons()
+                                disable(topk_act)
+                                
+                                result += manipulator.MMLU(combined_dataset, "test")
+                            print ("avg mmlu score: ", result/runs, "\n------------")
+
 
 
 # loading the model
@@ -239,7 +274,7 @@ topk_base = {
     "auxt": topk_base_auxt,
 }
 
-test_ranges = [(0,10),(0,50),(0,100),(3,10),(10,100)]
+test_ranges = [(0,3),(0,10),(0,50),(0,100),(3,10),(10,100)]
 
 run_analysis(subset_dict= subset_dict, topk_base= topk_base, test_ranges= test_ranges)
 
@@ -250,14 +285,17 @@ print("process complete")
 RUN ANALYSIS FOR ONE VARIATION
 """
 
-# k = 10
+# # this will act as the new model from this point
+# manipulator = NeuronManipulator(base_model,tokenizer)
+
+# k = 50
 # mk = 0
 
 # # adjust the topk
 # topk_act = adjust_topk(topk_base_maths, k, mink = mk)
 # topk_sub = adjust_topk(topk_base_auxt, k, mink = mk)
 
-# # topk_act = remove_common_values(topk_act,topk_sub)
+# topk_act = remove_common_values(topk_act,topk_sub)
 
 # disable(topk_act)
 
@@ -280,7 +318,5 @@ RUN ANALYSIS FOR ONE VARIATION
 # manipulator.MMLU(combined_dataset, "test")
 
 # manipulator.reset_all_neurons()
-
-# manipulator.MMLU(combined_dataset, "test")
 
 # print ("single process complete")

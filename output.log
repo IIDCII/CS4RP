@@ -3,26 +3,66 @@ nohup: ignoring input
   warnings.warn(_BETA_TRANSFORMS_WARNING)
 /mnt/fast0/dc903/CS4RP/rpenv/lib/python3.8/site-packages/torchvision/transforms/v2/__init__.py:54: UserWarning: The torchvision.datapoints and torchvision.transforms.v2 namespaces are still Beta. While we do not expect major breaking changes, some APIs may still change according to user feedback. Please submit any feedback you may have in this issue: https://github.com/pytorch/vision/issues/6753, and you can also check out https://github.com/pytorch/vision/issues/7319 to learn more about the APIs that we suspect might involve future changes. You can silence this warning by calling torchvision.disable_beta_transforms_warning().
   warnings.warn(_BETA_TRANSFORMS_WARNING)
-Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:02<00:07,  2.36s/it]Loading checkpoint shards:  50%|█████     | 2/4 [00:04<00:04,  2.35s/it]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:06<00:02,  2.32s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:07<00:00,  1.66s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:07<00:00,  1.91s/it]
-----------------  testing on mmlu  physics
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:02<00:07,  2.52s/it]Loading checkpoint shards:  50%|█████     | 2/4 [00:05<00:05,  2.53s/it]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:07<00:02,  2.46s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:08<00:00,  1.75s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:08<00:00,  2.02s/it]
+------------------------ testing on mmlu  physics
 base mmlu with no nodes turned off
-0  correct out of  0
-55  correct out of  150
-MMLU score:  37.94466403162055 
-----------
-----------------  testing on topk range  (0, 10)
+MMLU score:  38.73517786561265
+MMLU score:  38.3399209486166
+MMLU score:  37.94466403162055
+avg mmlu score:  38.3399209486166 
+------------
+-------------------  testing on topk range k =  3 mk =  0
+maths  sub auxt
+total number of neurons disabled:  159
+MMLU score:  38.3399209486166
+total number of neurons disabled:  159
+MMLU score:  38.3399209486166
+total number of neurons disabled:  159
+MMLU score:  37.54940711462451
+avg mmlu score:  38.076416337285906 
+------------
+physics  sub auxt
+total number of neurons disabled:  160
+MMLU score:  39.52569169960474
+total number of neurons disabled:  160
+MMLU score:  38.73517786561265
+total number of neurons disabled:  160
+MMLU score:  37.94466403162055
+avg mmlu score:  38.73517786561265 
+------------
+philosophy  sub auxt
+total number of neurons disabled:  162
+MMLU score:  40.316205533596836
+total number of neurons disabled:  162
+MMLU score:  41.89723320158103
+total number of neurons disabled:  162
+MMLU score:  40.71146245059288
+avg mmlu score:  40.974967061923586 
+------------
+maths  sub  physics
+total number of neurons disabled:  54
+MMLU score:  39.920948616600796
+maths  sub  physics
+total number of neurons disabled:  54
+MMLU score:  37.54940711462451
+maths  sub  physics
+total number of neurons disabled:  54
+MMLU score:  38.73517786561265
+avg mmlu score:  38.735177865612656 
+------------
+philosophy  sub  physics
+total number of neurons disabled:  56
+MMLU score:  41.10671936758894
+philosophy  sub  physics
+total number of neurons disabled:  56
+MMLU score:  40.316205533596836
+philosophy  sub  physics
+total number of neurons disabled:  56
+MMLU score:  42.29249011857708
+avg mmlu score:  41.23847167325429 
+------------
+-------------------  testing on topk range k =  10 mk =  0
 maths  sub auxt
 total number of neurons disabled:  640
-0  correct out of  0
-53  correct out of  150
-MMLU score:  40.316205533596836 
-----------
-philosophy  sub auxt
-total number of neurons disabled:  625
-0  correct out of  0
-50  correct out of  150
-MMLU score:  38.3399209486166 
-----------
-maths  sub  physics
-total number of neurons disabled:  201
-0  correct out of  0
+MMLU score:  41.89723320158103
+total number of neurons disabled:  640
