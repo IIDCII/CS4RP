@@ -19,6 +19,8 @@ from datasets import load_from_disk
 from datasets import Dataset
 import time
 from tqdm import tqdm
+import random
+import string
 
 class ActivationAnalyser:
     def __init__(self, model, tokenizer):
@@ -56,6 +58,10 @@ class ActivationAnalyser:
             else:
                 prompt = text["text"]
 
+                # randomise the token order
+                # prompt = prompt.split()
+                # random.shuffle(prompt)
+                # prompt = ' '.join(prompt)
 
             inputs = self.tokenizer(
                 prompt,
