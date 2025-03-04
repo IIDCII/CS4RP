@@ -223,6 +223,36 @@ def run_analysis(subset_dict, topk_base, test_ranges, runs = 3):
                                 
                                 result += manipulator.MMLU(combined_dataset, "test")
                             print ("avg mmlu score: ", result/runs, "\n------------")
+                        
+
+
+def run_rand_analysis(subset_dict, topk_base, test_ranges, runs = 3):
+    for name in subset_dict:
+        print ("------------------------ testing on mmlu ", name)
+        
+        # setting up the data for the test
+        datasets = []
+        for subset in subset_dict[name]:
+            dataset = load_dataset("cais/mmlu", subset, split="test")
+            datasets.append(dataset)
+        combined_dataset = concatenate_datasets(datasets)
+
+        for trange in test_ranges:
+            print ("-------------------  testing on topk range k = ", trange[1], "mk = ", trange[0])
+            result  = 0
+            for _ in range(runs):
+                print ("random")
+                
+                topk_act = adjust_topk(topk_base['rand'], trange[1], mink = trange[0])
+
+                manipulator = NeuronManipulator(base_model,tokenizer)
+                manipulator.reset_all_neurons()
+                disable(topk_act)
+                
+                result += manipulator.MMLU(combined_dataset, "test")
+            print ("avg mmlu score: ", result/runs, "\n------------")
+        
+
 
 
 
@@ -254,69 +284,70 @@ with open('topk/base_physics.pkl', 'rb') as f:
     topk_base_physics = pickle.load(f)
 with open('topk/base_philosophy.pkl', 'rb') as f:
     topk_base_philosophy = pickle.load(f)
-
-
+with open('topk/base_rand.pkl', 'rb') as f:
+    topk_base_rand = pickle.load(f)
 
 
 """
 RUN ANALYSIS FOR EVERY VARIATION
 """
-# subset_dict = {
-#     "physics": ["high_school_physics", "college_physics"],
-#     "maths": ["high_school_mathematics","college_mathematics","elementary_mathematics","abstract_algebra","professional_accounting"],
-#     "philosophy": ["philosophy"],
-# }
+subset_dict = {
+    "physics": ["high_school_physics", "college_physics"],
+    "maths": ["high_school_mathematics","college_mathematics","elementary_mathematics","abstract_algebra","professional_accounting"],
+    "philosophy": ["philosophy"],
+}
 
-# topk_base = {
-#     "maths": topk_base_maths,
-#     "physics": topk_base_physics,
-#     "philosophy": topk_base_philosophy,
-#     "auxt": topk_base_auxt,
-# }
+topk_base = {
+    # "maths": topk_base_maths,
+    # "physics": topk_base_physics,
+    # "philosophy": topk_base_philosophy,
+    # "auxt": topk_base_auxt,
+    "rand": topk_base_rand,
+}
 
-# test_ranges = [(0,3),(0,10),(0,50),(0,100),(3,10),(10,100)]
+test_ranges = [(0,3),(0,10),(0,50),(0,100),(3,10),(10,100)]
 
-# run_analysis(subset_dict= subset_dict, topk_base= topk_base, test_ranges= test_ranges)
+run_rand_analysis(subset_dict= subset_dict, topk_base= topk_base, test_ranges= test_ranges)
 
-# print("process complete")
+print("process complete")
 
 
 """
 RUN ANALYSIS FOR ONE VARIATION
 """
 
-# this will act as the new model from this point
-manipulator = NeuronManipulator(base_model,tokenizer)
+# # this will act as the new model from this point
+# manipulator = NeuronManipulator(base_model,tokenizer)
 
-k = 10
-mk = 0
+# k = 50
+# mk = 0
 
-# adjust the topk
-topk_act = adjust_topk(topk_base_philosophy, k, mink = mk)
-topk_sub = adjust_topk(topk_base_maths, k, mink = mk)
+# # adjust the topk
+# topk_act = adjust_topk(topk_base_physics, k, mink = mk)
+# topk_sub = adjust_topk(topk_base_rand, k, mink = mk)
 
-topk_act = remove_common_values(topk_act,topk_sub)
+# topk_act = remove_common_values(topk_act,topk_sub)
 
-disable(topk_act)
+# disable(topk_act)
 
-# Define the dataset name and the subsets you want to load
-data_name = "cais/mmlu"
+# # Define the dataset name and the subsets you want to load
+# data_name = "cais/mmlu"
 # subset_names = ["high_school_physics", "college_physics"] # physics
-# subset_names = ["high_school_mathematics", "college_mathematics","elementary_mathematics","abstract_algebra","professional_accounting"] # maths
-# subset_names = ["high_school_mathematics"] # maths
-subset_names = ["philosophy"] # philosophy
+# # subset_names = ["high_school_mathematics", "college_mathematics","elementary_mathematics","abstract_algebra","professional_accounting"] # maths
+# # subset_names = ["high_school_mathematics"] # maths
+# # subset_names = ["philosophy"] # philosophy
 
-# Load and concatenate the subsets
-datasets = []
-for subset_name in subset_names:
-    dataset = load_dataset(data_name, subset_name, split="test")
-    datasets.append(dataset)
+# # Load and concatenate the subsets
+# datasets = []
+# for subset_name in subset_names:
+#     dataset = load_dataset(data_name, subset_name, split="test")
+#     datasets.append(dataset)
 
-# Combine all subsets into a single dataset
-combined_dataset = concatenate_datasets(datasets)
+# # Combine all subsets into a single dataset
+# combined_dataset = concatenate_datasets(datasets)
 
-manipulator.MMLU(combined_dataset, "test")
+# manipulator.MMLU(combined_dataset, "test")
 
-manipulator.reset_all_neurons()
+# manipulator.reset_all_neurons()
 
-print ("single process complete")
+# print ("single process complete")
