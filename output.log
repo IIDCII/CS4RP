@@ -3,7 +3,7 @@ nohup: ignoring input
   warnings.warn(_BETA_TRANSFORMS_WARNING)
 /mnt/fast0/dc903/CS4RP/rpenv/lib/python3.8/site-packages/torchvision/transforms/v2/__init__.py:54: UserWarning: The torchvision.datapoints and torchvision.transforms.v2 namespaces are still Beta. While we do not expect major breaking changes, some APIs may still change according to user feedback. Please submit any feedback you may have in this issue: https://github.com/pytorch/vision/issues/6753, and you can also check out https://github.com/pytorch/vision/issues/7319 to learn more about the APIs that we suspect might involve future changes. You can silence this warning by calling torchvision.disable_beta_transforms_warning().
   warnings.warn(_BETA_TRANSFORMS_WARNING)
-Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:06<00:20,  6.80s/it]Loading checkpoint shards:  50%|█████     | 2/4 [00:12<00:12,  6.37s/it]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:16<00:04,  4.89s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:17<00:00,  3.43s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:17<00:00,  4.30s/it]
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:02<00:08,  2.88s/it]Loading checkpoint shards:  50%|█████     | 2/4 [00:05<00:05,  2.98s/it]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:08<00:02,  2.90s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:09<00:00,  2.03s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:09<00:00,  2.36s/it]
 ------------------------ testing on mmlu  physics
 -------------------  testing on topk range k =  3 mk =  0
 random
@@ -11,18 +11,121 @@ total number of neurons disabled:  384
 MMLU score:  40.71146245059288
 random
 total number of neurons disabled:  384
-MMLU score:  41.89723320158103
+MMLU score:  40.316205533596836
 random
 total number of neurons disabled:  384
-MMLU score:  42.68774703557312
-avg mmlu score:  41.76548089591568 
+MMLU score:  40.316205533596836
+avg mmlu score:  40.44795783926219 
 ------------
 -------------------  testing on topk range k =  10 mk =  0
+random
+total number of neurons disabled:  1280
+MMLU score:  39.920948616600796
 random
 total number of neurons disabled:  1280
 MMLU score:  40.71146245059288
 random
 total number of neurons disabled:  1280
+MMLU score:  39.920948616600796
+avg mmlu score:  40.18445322793149 
+------------
+-------------------  testing on topk range k =  50 mk =  0
+random
+total number of neurons disabled:  6400
+MMLU score:  45.45454545454545
+random
+total number of neurons disabled:  6400
+MMLU score:  43.873517786561266
+random
+total number of neurons disabled:  6400
+MMLU score:  46.6403162055336
+avg mmlu score:  45.3227931488801 
+------------
+-------------------  testing on topk range k =  100 mk =  0
+random
+total number of neurons disabled:  12800
+MMLU score:  40.71146245059288
+random
+total number of neurons disabled:  12800
+MMLU score:  40.71146245059288
+random
+total number of neurons disabled:  12800
+MMLU score:  40.316205533596836
+avg mmlu score:  40.57971014492753 
+------------
+-------------------  testing on topk range k =  10 mk =  3
+random
+total number of neurons disabled:  896
+MMLU score:  38.73517786561265
+random
+total number of neurons disabled:  896
+MMLU score:  37.15415019762846
+random
+total number of neurons disabled:  896
+MMLU score:  39.130434782608695
+avg mmlu score:  38.3399209486166 
+------------
+-------------------  testing on topk range k =  100 mk =  10
+random
+total number of neurons disabled:  11520
 MMLU score:  39.130434782608695
 random
+total number of neurons disabled:  11520
+MMLU score:  41.10671936758894
+random
+total number of neurons disabled:  11520
+MMLU score:  39.52569169960474
+avg mmlu score:  39.92094861660079 
+------------
+-------------------  testing on topk range k =  1000 mk =  0
+random
+total number of neurons disabled:  128000
+MMLU score:  0.0
+random
+total number of neurons disabled:  128000
+MMLU score:  0.0
+random
+total number of neurons disabled:  128000
+MMLU score:  0.0
+avg mmlu score:  0.0 
+------------
+------------------------ testing on mmlu  maths
+-------------------  testing on topk range k =  3 mk =  0
+random
+total number of neurons disabled:  384
+MMLU score:  42.389380530973455
+random
+total number of neurons disabled:  384
+MMLU score:  43.00884955752212
+random
+total number of neurons disabled:  384
+MMLU score:  42.56637168141593
+avg mmlu score:  42.65486725663717 
+------------
+-------------------  testing on topk range k =  10 mk =  0
+random
 total number of neurons disabled:  1280
+MMLU score:  43.1858407079646
+random
+total number of neurons disabled:  1280
+MMLU score:  43.716814159292035
+random
+total number of neurons disabled:  1280
+MMLU score:  44.60176991150443
+avg mmlu score:  43.83480825958702 
+------------
+-------------------  testing on topk range k =  50 mk =  0
+random
+total number of neurons disabled:  6400
+MMLU score:  42.65486725663717
+random
+total number of neurons disabled:  6400
+MMLU score:  42.0353982300885
+random
+total number of neurons disabled:  6400
+MMLU score:  42.0353982300885
+avg mmlu score:  42.24188790560472 
+------------
+-------------------  testing on topk range k =  100 mk =  0
+random
+total number of neurons disabled:  12800
