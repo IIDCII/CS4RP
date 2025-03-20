@@ -322,25 +322,25 @@ RUN ANALYSIS FOR ONE VARIATION
 # this will act as the new model from this point
 manipulator = NeuronManipulator(base_model,tokenizer)
 
-k = 100
+k = 1
 mk = 0
 
 # adjust the topk
-topk_act = adjust_topk(topk_base_philosophy, k, mink = mk)
-topk_sub = adjust_topk(topk_base_physics, k, mink = mk)
-topk_sub2 = adjust_topk(topk_base_maths, k, mink = mk)
+topk_act = adjust_topk(topk_base_rand, k, mink = mk)
+# topk_sub = adjust_topk(topk_base_philosophy, k, mink = mk)
+# topk_sub2 = adjust_topk(topk_base_maths, k, mink = mk)
 
-topk_act = remove_common_values(topk_act,topk_sub)
-topk_act = remove_common_values(topk_act,topk_sub2)
+# topk_act = remove_common_values(topk_act,topk_sub)
+# topk_act = remove_common_values(topk_act,topk_sub2)
 
 disable(topk_act)
 
 # Define the dataset name and the subsets you want to load
 data_name = "cais/mmlu"
 # subset_names = ["high_school_physics", "college_physics"] # physics
-# subset_names = ["high_school_mathematics", "college_mathematics","elementary_mathematics","abstract_algebra","professional_accounting"] # maths
+subset_names = ["high_school_mathematics", "college_mathematics","elementary_mathematics","abstract_algebra","professional_accounting"] # maths
 # subset_names = ["high_school_mathematics"] # maths
-subset_names = ["philosophy"] # philosophy
+# subset_names = ["philosophy"] # philosophy
 
 # Load and concatenate the subsets
 datasets = []
