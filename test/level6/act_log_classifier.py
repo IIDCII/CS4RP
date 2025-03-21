@@ -1,11 +1,11 @@
 """
-act log 5 but getting the average based on the activations but based on all of the layers
+going to classify the data based on the activations when probing for a specific document or test using maths philosophy and physics
+if it can be able to classify beyond the random for any (33%) then it shows that the selected nodes are actually useful
 """
 
+# setup
 import os
-# set the GPUs
 os.environ["CUDA_VISIBLE_DEVICES"] = "0,1,2,3"
-# setting for vllm inference so that it can run in parallel
 os.environ["VLLM_WORKER_MULTIPROC_METHOD"] = "spawn"
 
 import torch
@@ -57,12 +57,7 @@ class ActivationAnalyser:
                 )
             else:
                 prompt = text["text"]
-
-                # randomise the token order
-                # prompt = prompt.split()
-                # random.shuffle(prompt)
-                # prompt = ' '.join(prompt)
-
+            
             inputs = self.tokenizer(
                 prompt,
                 return_tensors="pt",
@@ -107,63 +102,3 @@ class ActivationAnalyser:
             }
             
         return results
-
-def load_data(name = "", subset_name="", data_range = 10, data_type = "test"):
-    if data_type == "test":
-        data_path = name
-        dataset = load_from_disk(data_path)
-        dataset = dataset[:data_range]["text"]
-        dataset = [{"text": text} for text in dataset]
-        dataset = Dataset.from_list(dataset)
-
-    elif data_type == "train":
-        data_name = name
-        subset_name = subset_name
-        dataset = load_dataset(data_name, subset_name, split = "train")
-        dataset = dataset.select(range(data_range))
-
-    return dataset
-
-
-# loading the model
-base_model_name = "Llama-3.1-8B-Instruct"
-
-base_model = AutoModelForCausalLM.from_pretrained(
-    base_model_name,
-    low_cpu_mem_usage=True,
-    return_dict=True,
-    torch_dtype=torch.float16,
-    device_map="auto"
-)
-
-# Reload tokenizer to save it
-tokenizer = AutoTokenizer.from_pretrained(base_model_name, trust_remote_code=True)
-tokenizer.pad_token = tokenizer.eos_token
-tokenizer.padding_side = "right"
-
-# load training
-# dataset = load_data(name = "cais/mmlu", subset_name = "auxiliary_train", data_range = 1000, data_type = "train")
-
-# loading the data
-data_path = "data/Philosophy,1970-2022"
-dataset = load_from_disk(data_path)
-dataset = dataset[:1000]["text"]
-dataset = [{"text": text} for text in dataset]
-dataset = Dataset.from_list(dataset)
-
-# active neuron eval
-base_analyser = ActivationAnalyser(base_model, tokenizer)
-
-# get the topk for that single node given maths
-# k set to 1000
-bf = base_analyser.analyze_text(dataset, top_k=1000, data_type = "test")
-
-# store all of the results
-# make sure the file name is correct
-with open('topk/base_philosophy_sparse.pkl', 'wb') as f:
-    pickle.dump(bf, f)
-
-with open('topk/base_philosophy_sparse.pkl', 'rb') as f:
-    loaded_dict = pickle.load(f)
-
-print ("process complete")

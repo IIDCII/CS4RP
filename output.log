@@ -3,129 +3,5 @@ nohup: ignoring input
   warnings.warn(_BETA_TRANSFORMS_WARNING)
 /mnt/fast0/dc903/CS4RP/rpenv/lib/python3.8/site-packages/torchvision/transforms/v2/__init__.py:54: UserWarning: The torchvision.datapoints and torchvision.transforms.v2 namespaces are still Beta. While we do not expect major breaking changes, some APIs may still change according to user feedback. Please submit any feedback you may have in this issue: https://github.com/pytorch/vision/issues/6753, and you can also check out https://github.com/pytorch/vision/issues/7319 to learn more about the APIs that we suspect might involve future changes. You can silence this warning by calling torchvision.disable_beta_transforms_warning().
   warnings.warn(_BETA_TRANSFORMS_WARNING)
-Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:02<00:08,  2.88s/it]Loading checkpoint shards:  50%|█████     | 2/4 [00:05<00:05,  2.98s/it]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:08<00:02,  2.90s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:09<00:00,  2.03s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:09<00:00,  2.36s/it]
------------------------- testing on mmlu  physics
--------------------  testing on topk range k =  3 mk =  0
-random
-total number of neurons disabled:  384
-MMLU score:  40.71146245059288
-random
-total number of neurons disabled:  384
-MMLU score:  40.316205533596836
-random
-total number of neurons disabled:  384
-MMLU score:  40.316205533596836
-avg mmlu score:  40.44795783926219 
-------------
--------------------  testing on topk range k =  10 mk =  0
-random
-total number of neurons disabled:  1280
-MMLU score:  39.920948616600796
-random
-total number of neurons disabled:  1280
-MMLU score:  40.71146245059288
-random
-total number of neurons disabled:  1280
-MMLU score:  39.920948616600796
-avg mmlu score:  40.18445322793149 
-------------
--------------------  testing on topk range k =  50 mk =  0
-random
-total number of neurons disabled:  6400
-MMLU score:  45.45454545454545
-random
-total number of neurons disabled:  6400
-MMLU score:  43.873517786561266
-random
-total number of neurons disabled:  6400
-MMLU score:  46.6403162055336
-avg mmlu score:  45.3227931488801 
-------------
--------------------  testing on topk range k =  100 mk =  0
-random
-total number of neurons disabled:  12800
-MMLU score:  40.71146245059288
-random
-total number of neurons disabled:  12800
-MMLU score:  40.71146245059288
-random
-total number of neurons disabled:  12800
-MMLU score:  40.316205533596836
-avg mmlu score:  40.57971014492753 
-------------
--------------------  testing on topk range k =  10 mk =  3
-random
-total number of neurons disabled:  896
-MMLU score:  38.73517786561265
-random
-total number of neurons disabled:  896
-MMLU score:  37.15415019762846
-random
-total number of neurons disabled:  896
-MMLU score:  39.130434782608695
-avg mmlu score:  38.3399209486166 
-------------
--------------------  testing on topk range k =  100 mk =  10
-random
-total number of neurons disabled:  11520
-MMLU score:  39.130434782608695
-random
-total number of neurons disabled:  11520
-MMLU score:  41.10671936758894
-random
-total number of neurons disabled:  11520
-MMLU score:  39.52569169960474
-avg mmlu score:  39.92094861660079 
-------------
--------------------  testing on topk range k =  1000 mk =  0
-random
-total number of neurons disabled:  128000
-MMLU score:  0.0
-random
-total number of neurons disabled:  128000
-MMLU score:  0.0
-random
-total number of neurons disabled:  128000
-MMLU score:  0.0
-avg mmlu score:  0.0 
-------------
------------------------- testing on mmlu  maths
--------------------  testing on topk range k =  3 mk =  0
-random
-total number of neurons disabled:  384
-MMLU score:  42.389380530973455
-random
-total number of neurons disabled:  384
-MMLU score:  43.00884955752212
-random
-total number of neurons disabled:  384
-MMLU score:  42.56637168141593
-avg mmlu score:  42.65486725663717 
-------------
--------------------  testing on topk range k =  10 mk =  0
-random
-total number of neurons disabled:  1280
-MMLU score:  43.1858407079646
-random
-total number of neurons disabled:  1280
-MMLU score:  43.716814159292035
-random
-total number of neurons disabled:  1280
-MMLU score:  44.60176991150443
-avg mmlu score:  43.83480825958702 
-------------
--------------------  testing on topk range k =  50 mk =  0
-random
-total number of neurons disabled:  6400
-MMLU score:  42.65486725663717
-random
-total number of neurons disabled:  6400
-MMLU score:  42.0353982300885
-random
-total number of neurons disabled:  6400
-MMLU score:  42.0353982300885
-avg mmlu score:  42.24188790560472 
-------------
--------------------  testing on topk range k =  100 mk =  0
-random
-total number of neurons disabled:  12800
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:02<00:07,  2.41s/it]Loading checkpoint shards:  50%|█████     | 2/4 [00:04<00:04,  2.39s/it]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:07<00:02,  2.39s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:07<00:00,  1.74s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:07<00:00,  1.98s/it]
+Processing texts:   0%|          | 0/1000 [00:00<?, ?text/s]Processing texts:   0%|          | 1/1000 [00:09<2:41:35,  9.71s/text]Processing texts:   0%|          | 2/1000 [00:13<1:46:30,  6.40s/text]Processing texts:   0%|          | 3/1000 [00:17<1:28:36,  5.33s/text]Processing texts:   0%|          | 4/1000 [00:21<1:20:16,  4.84s/text]Processing texts:   0%|          | 5/1000 [00:25<1:15:35,  4.56s/text]Processing texts:   1%|          | 6/1000 [00:29<1:12:21,  4.37s/text]Processing texts:   1%|          | 7/1000 [00:33<1:10:15,  4.25s/text]Processing texts:   1%|          | 8/1000 [00:37<1:08:48,  4.16s/text]Processing texts:   1%|          | 9/1000 [00:41<1:07:08,  4.06s/text]Processing texts:   1%|          | 10/1000 [00:45<1:06:06,  4.01s/text]Processing texts:   1%|          | 11/1000 [00:49<1:05:08,  3.95s/text]Processing texts:   1%|          | 12/1000 [00:53<1:04:30,  3.92s/text]Processing texts:   1%|▏         | 13/1000 [00:57<1:04:07,  3.90s/text]Processing texts:   1%|▏         | 14/1000 [01:01<1:03:30,  3.86s/text]Processing texts:   2%|▏         | 15/1000 [01:04<1:02:48,  3.83s/text]Processing texts:   2%|▏         | 16/1000 [01:08<1:02:22,  3.80s/text]Processing texts:   2%|▏         | 17/1000 [01:12<1:02:09,  3.79s/text]Processing texts:   2%|▏         | 18/1000 [01:16<1:02:00,  3.79s/text]Processing texts:   2%|▏         | 19/1000 [01:19<1:01:45,  3.78s/text]Processing texts:   2%|▏         | 20/1000 [01:23<1:01:32,  3.77s/text]Processing texts:   2%|▏         | 21/1000 [01:27<1:01:28,  3.77s/text]Processing texts:   2%|▏         | 22/1000 [01:31<1:01:10,  3.75s/text]Processing texts:   2%|▏         | 23/1000 [01:34<1:00:57,  3.74s/text]Processing texts:   2%|▏         | 24/1000 [01:38<1:00:51,  3.74s/text]Processing texts:   2%|▎         | 25/1000 [01:42<1:00:42,  3.74s/text]Processing texts:   3%|▎         | 26/1000 [01:45<1:00:45,  3.74s/text]Processing texts:   3%|▎         | 27/1000 [01:49<1:00:38,  3.74s/text]Processing texts:   3%|▎         | 28/1000 [01:53<1:00:36,  3.74s/text]Processing texts:   3%|▎         | 29/1000 [01:57<1:00:28,  3.74s/text]Processing texts:   3%|▎         | 30/1000 [02:00<1:00:25,  3.74s/text]Processing texts:   3%|▎         | 31/1000 [02:04<1:00:19,  3.73s/text]Processing texts:   3%|▎         | 32/1000 [02:08<1:00:09,  3.73s/text]Processing texts:   3%|▎         | 33/1000 [02:12<1:00:02,  3.73s/text]Processing texts:   3%|▎         | 34/1000 [02:15<59:58,  3.72s/text]  Processing texts:   4%|▎         | 35/1000 [02:19<59:48,  3.72s/text]Processing texts:   4%|▎         | 36/1000 [02:23<59:47,  3.72s/text]Processing texts:   4%|▎         | 37/1000 [02:26<59:39,  3.72s/text]Processing texts:   4%|▍         | 38/1000 [02:30<59:42,  3.72s/text]Processing texts:   4%|▍         | 39/1000 [02:34<59:36,  3.72s/text]Processing texts:   4%|▍         | 40/1000 [02:38<59:29,  3.72s/text]Processing texts:   4%|▍         | 41/1000 [02:41<59:22,  3.71s/text]Processing texts:   4%|▍         | 42/1000 [02:45<59:24,  3.72s/text]Processing texts:   4%|▍         | 43/1000 [02:49<59:21,  3.72s/text]Processing texts:   4%|▍         | 44/1000 [02:52<59:08,  3.71s/text]Processing texts:   4%|▍         | 45/1000 [02:56<59:04,  3.71s/text]Processing texts:   5%|▍         | 46/1000 [03:00<59:01,  3.71s/text]Processing texts:   5%|▍         | 47/1000 [03:04<59:04,  3.72s/text]Processing texts:   5%|▍         | 48/1000 [03:07<58:59,  3.72s/text]Processing texts:   5%|▍         | 49/1000 [03:11<58:48,  3.71s/text]Processing texts:   5%|▌         | 50/1000 [03:15<58:49,  3.72s/text]Processing texts:   5%|▌         | 51/1000 [03:18<58:48,  3.72s/text]Processing texts:   5%|▌         | 52/1000 [03:22<58:48,  3.72s/text]Processing texts:   5%|▌         | 53/1000 [03:26<58:43,  3.72s/text]Processing texts:   5%|▌         | 54/1000 [03:30<58:35,  3.72s/text]Processing texts:   6%|▌         | 55/1000 [03:33<58:25,  3.71s/text]Processing texts:   6%|▌         | 56/1000 [03:37<58:20,  3.71s/text]Processing texts:   6%|▌         | 57/1000 [03:41<58:18,  3.71s/text]Processing texts:   6%|▌         | 58/1000 [03:44<58:22,  3.72s/text]Processing texts:   6%|▌         | 59/1000 [03:48<58:11,  3.71s/text]Processing texts:   6%|▌         | 60/1000 [03:52<58:09,  3.71s/text]Processing texts:   6%|▌         | 61/1000 [03:56<58:01,  3.71s/text]Processing texts:   6%|▌         | 62/1000 [03:59<57:58,  3.71s/text]Processing texts:   6%|▋         | 63/1000 [04:03<58:00,  3.71s/text]Processing texts:   6%|▋         | 64/1000 [04:07<57:48,  3.71s/text]Processing texts:   6%|▋         | 65/1000 [04:10<57:40,  3.70s/text]Processing texts:   7%|▋         | 66/1000 [04:14<57:32,  3.70s/text]Processing texts:   7%|▋         | 67/1000 [04:18<57:43,  3.71s/text]Processing texts:   7%|▋         | 68/1000 [04:22<57:42,  3.71s/text]Processing texts:   7%|▋         | 69/1000 [04:25<57:33,  3.71s/text]Processing texts:   7%|▋         | 70/1000 [04:29<57:28,  3.71s/text]Processing texts:   7%|▋         | 71/1000 [04:33<57:23,  3.71s/text]Processing texts:   7%|▋         | 72/1000 [04:36<57:25,  3.71s/text]Processing texts:   7%|▋         | 73/1000 [04:40<57:25,  3.72s/text]Processing texts:   7%|▋         | 74/1000 [04:44<57:21,  3.72s/text]Processing texts:   8%|▊         | 75/1000 [04:48<57:20,  3.72s/text]Processing texts:   8%|▊         | 76/1000 [04:51<57:20,  3.72s/text]Processing texts:   8%|▊         | 77/1000 [04:55<57:12,  3.72s/text]Processing texts:   8%|▊         | 78/1000 [04:59<57:18,  3.73s/text]Processing texts:   8%|▊         | 79/1000 [05:02<57:05,  3.72s/text]Processing texts:   8%|▊         | 80/1000 [05:06<56:59,  3.72s/text]Processing texts:   8%|▊         | 81/1000 [05:10<56:55,  3.72s/text]Processing texts:   8%|▊         | 82/1000 [05:14<57:10,  3.74s/text]Processing texts:   8%|▊         | 83/1000 [05:17<57:32,  3.76s/text]Processing texts:   8%|▊         | 84/1000 [05:21<57:41,  3.78s/text]Processing texts:   8%|▊         | 85/1000 [05:25<57:54,  3.80s/text]Processing texts:   9%|▊         | 86/1000 [05:29<57:40,  3.79s/text]Processing texts:   9%|▊         | 87/1000 [05:33<57:25,  3.77s/text]Processing texts:   9%|▉         | 88/1000 [05:36<57:05,  3.76s/text]Processing texts:   9%|▉         | 89/1000 [05:40<57:00,  3.76s/text]Processing texts:   9%|▉         | 90/1000 [05:44<56:53,  3.75s/text]Processing texts:   9%|▉         | 91/1000 [05:48<56:44,  3.74s/text]Processing texts:   9%|▉         | 92/1000 [05:51<56:32,  3.74s/text]Processing texts:   9%|▉         | 93/1000 [05:55<56:37,  3.75s/text]Processing texts:   9%|▉         | 94/1000 [05:59<56:25,  3.74s/text]Processing texts:  10%|▉         | 95/1000 [06:03<56:35,  3.75s/text]Processing texts:  10%|▉         | 96/1000 [06:06<56:50,  3.77s/text]Processing texts:  10%|▉         | 97/1000 [06:10<56:30,  3.75s/text]Processing texts:  10%|▉         | 98/1000 [06:14<56:10,  3.74s/text]Processing texts:  10%|▉         | 99/1000 [06:18<56:08,  3.74s/text]Processing texts:  10%|█         | 100/1000 [06:21<55:54,  3.73s/text]Processing texts:  10%|█         | 101/1000 [06:25<55:43,  3.72s/text]Processing texts:  10%|█         | 102/1000 [06:29<55:42,  3.72s/text]Processing texts:  10%|█         | 103/1000 [06:32<55:48,  3.73s/text]Processing texts:  10%|█         | 104/1000 [06:36<55:51,  3.74s/text]Processing texts:  10%|█         | 105/1000 [06:40<55:44,  3.74s/text]Processing texts:  11%|█         | 106/1000 [06:44<55:42,  3.74s/text]Processing texts:  11%|█         | 107/1000 [06:47<55:31,  3.73s/text]Processing texts:  11%|█         | 108/1000 [06:51<55:35,  3.74s/text]Processing texts:  11%|█         | 109/1000 [06:55<55:30,  3.74s/text]Processing texts:  11%|█         | 110/1000 [06:59<55:14,  3.72s/text]Processing texts:  11%|█         | 111/1000 [07:02<55:12,  3.73s/text]Processing texts:  11%|█         | 112/1000 [07:06<55:12,  3.73s/text]Processing texts:  11%|█▏        | 113/1000 [07:10<55:13,  3.74s/text]Processing texts:  11%|█▏        | 114/1000 [07:13<55:06,  3.73s/text]Processing texts:  12%|█▏        | 115/1000 [07:17<55:12,  3.74s/text]Processing texts:  12%|█▏        | 116/1000 [07:21<54:56,  3.73s/text]Processing texts:  12%|█▏        | 117/1000 [07:25<54:41,  3.72s/text]Processing texts:  12%|█▏        | 118/1000 [07:28<54:39,  3.72s/text]Processing texts:  12%|█▏        | 119/1000 [07:32<54:36,  3.72s/text]Processing texts:  12%|█▏        | 120/1000 [07:36<54:33,  3.72s/text]Processing texts:  12%|█▏        | 121/1000 [07:40<54:28,  3.72s/text]Processing texts:  12%|█▏        | 122/1000 [07:43<54:24,  3.72s/text]Processing texts:  12%|█▏        | 123/1000 [07:47<54:16,  3.71s/text]Processing texts:  12%|█▏        | 124/1000 [07:51<54:15,  3.72s/text]Processing texts:  12%|█▎        | 125/1000 [07:54<54:14,  3.72s/text]Processing texts:  13%|█▎        | 126/1000 [07:58<54:07,  3.72s/text]Processing texts:  13%|█▎        | 127/1000 [08:02<54:11,  3.72s/text]Processing texts:  13%|█▎        | 128/1000 [08:06<54:14,  3.73s/text]Processing texts:  13%|█▎        | 129/1000 [08:09<54:04,  3.73s/text]Processing texts:  13%|█▎        | 130/1000 [08:13<53:58,  3.72s/text]Processing texts:  13%|█▎        | 131/1000 [08:17<54:03,  3.73s/text]Processing texts:  13%|█▎        | 132/1000 [08:21<54:04,  3.74s/text]Processing texts:  13%|█▎        | 133/1000 [08:24<54:04,  3.74s/text]Processing texts:  13%|█▎        | 134/1000 [08:28<53:54,  3.73s/text]Processing texts:  14%|█▎        | 135/1000 [08:32<53:43,  3.73s/text]Processing texts:  14%|█▎        | 136/1000 [08:35<53:42,  3.73s/text]Processing texts:  14%|█▎        | 137/1000 [08:39<53:35,  3.73s/text]Processing texts:  14%|█▍        | 138/1000 [08:43<53:40,  3.74s/text]Processing texts:  14%|█▍        | 139/1000 [08:47<53:37,  3.74s/text]Processing texts:  14%|█▍        | 140/1000 [08:50<53:32,  3.74s/text]Processing texts:  14%|█▍        | 141/1000 [08:54<53:28,  3.73s/text]Processing texts:  14%|█▍        | 142/1000 [08:58<53:30,  3.74s/text]Processing texts:  14%|█▍        | 143/1000 [09:02<53:24,  3.74s/text]Processing texts:  14%|█▍        | 144/1000 [09:05<53:21,  3.74s/text]Processing texts:  14%|█▍        | 145/1000 [09:09<53:23,  3.75s/text]Processing texts:  15%|█▍        | 146/1000 [09:13<53:20,  3.75s/text]Processing texts:  15%|█▍        | 147/1000 [09:17<53:31,  3.77s/text]Processing texts:  15%|█▍        | 148/1000 [09:20<53:27,  3.76s/text]Processing texts:  15%|█▍        | 149/1000 [09:24<53:20,  3.76s/text]Processing texts:  15%|█▌        | 150/1000 [09:28<53:14,  3.76s/text]Processing texts:  15%|█▌        | 151/1000 [09:32<53:07,  3.75s/text]Processing texts:  15%|█▌        | 152/1000 [09:35<53:00,  3.75s/text]Processing texts:  15%|█▌        | 153/1000 [09:39<52:51,  3.74s/text]Processing texts:  15%|█▌        | 154/1000 [09:43<52:48,  3.75s/text]Processing texts:  16%|█▌        | 155/1000 [09:47<52:45,  3.75s/text]Processing texts:  16%|█▌        | 156/1000 [09:50<52:43,  3.75s/text]Processing texts:  16%|█▌        | 157/1000 [09:54<52:41,  3.75s/text]Processing texts:  16%|█▌        | 158/1000 [09:58<52:31,  3.74s/text]Processing texts:  16%|█▌        | 159/1000 [10:02<52:29,  3.74s/text]Processing texts:  16%|█▌        | 160/1000 [10:05<52:24,  3.74s/text]Processing texts:  16%|█▌        | 161/1000 [10:09<52:31,  3.76s/text]Processing texts:  16%|█▌        | 162/1000 [10:13<52:24,  3.75s/text]Processing texts:  16%|█▋        | 163/1000 [10:17<52:24,  3.76s/text]Processing texts:  16%|█▋        | 164/1000 [10:20<52:19,  3.76s/text]Processing texts:  16%|█▋        | 165/1000 [10:24<52:05,  3.74s/text]Processing texts:  17%|█▋        | 166/1000 [10:28<52:10,  3.75s/text]Processing texts:  17%|█▋        | 167/1000 [10:32<52:08,  3.76s/text]Processing texts:  17%|█▋        | 168/1000 [10:35<51:53,  3.74s/text]Processing texts:  17%|█▋        | 169/1000 [10:39<51:47,  3.74s/text]Processing texts:  17%|█▋        | 170/1000 [10:43<51:42,  3.74s/text]Processing texts:  17%|█▋        | 171/1000 [10:47<51:32,  3.73s/text]Processing texts:  17%|█▋        | 172/1000 [10:50<51:22,  3.72s/text]Processing texts:  17%|█▋        | 173/1000 [10:54<51:18,  3.72s/text]Processing texts:  17%|█▋        | 174/1000 [10:58<51:19,  3.73s/text]Processing texts:  18%|█▊        | 175/1000 [11:01<51:18,  3.73s/text]Processing texts:  18%|█▊        | 176/1000 [11:05<51:16,  3.73s/text]Processing texts:  18%|█▊        | 177/1000 [11:09<51:12,  3.73s/text]Processing texts:  18%|█▊        | 178/1000 [11:13<51:07,  3.73s/text]Processing texts:  18%|█▊        | 179/1000 [11:16<51:07,  3.74s/text]Processing texts:  18%|█▊        | 180/1000 [11:20<50:53,  3.72s/text]Processing texts:  18%|█▊        | 181/1000 [11:24<50:47,  3.72s/text]Processing texts:  18%|█▊        | 182/1000 [11:28<50:48,  3.73s/text]Processing texts:  18%|█▊        | 183/1000 [11:31<50:47,  3.73s/text]Processing texts:  18%|█▊        | 184/1000 [11:35<50:47,  3.73s/text]Processing texts:  18%|█▊        | 185/1000 [11:39<50:47,  3.74s/text]Processing texts:  19%|█▊        | 186/1000 [11:43<50:39,  3.73s/text]Processing texts:  19%|█▊        | 187/1000 [11:46<50:48,  3.75s/text]Processing texts:  19%|█▉        | 188/1000 [11:50<50:37,  3.74s/text]Processing texts:  19%|█▉        | 189/1000 [11:54<50:29,  3.74s/text]Processing texts:  19%|█▉        | 190/1000 [11:57<50:20,  3.73s/text]Processing texts:  19%|█▉        | 191/1000 [12:01<50:16,  3.73s/text]Processing texts:  19%|█▉        | 192/1000 [12:05<50:17,  3.73s/text]Processing texts:  19%|█▉        | 193/1000 [12:09<50:09,  3.73s/text]Processing texts:  19%|█▉        | 194/1000 [12:12<50:10,  3.74s/text]Processing texts:  20%|█▉        | 195/1000 [12:16<50:08,  3.74s/text]Processing texts:  20%|█▉        | 196/1000 [12:20<49:57,  3.73s/text]Processing texts:  20%|█▉        | 197/1000 [12:24<49:57,  3.73s/text]Processing texts:  20%|█▉        | 198/1000 [12:27<49:55,  3.73s/text]Processing texts:  20%|█▉        | 199/1000 [12:31<49:55,  3.74s/text]Processing texts:  20%|██        | 200/1000 [12:35<49:52,  3.74s/text]Processing texts:  20%|██        | 201/1000 [12:39<49:47,  3.74s/text]Processing texts:  20%|██        | 202/1000 [12:42<49:45,  3.74s/text]Processing texts:  20%|██        | 203/1000 [12:46<49:38,  3.74s/text]
