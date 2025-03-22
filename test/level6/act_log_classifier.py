@@ -22,6 +22,8 @@ from tqdm import tqdm
 import random
 import string
 
+
+# hooks the model to get the activations
 class ActivationAnalyser:
     def __init__(self, model, tokenizer):
         self.tokenizer = tokenizer
@@ -40,23 +42,14 @@ class ActivationAnalyser:
             if "mlp." in name:
                 module.register_forward_hook(self._activation_hook(name))  
     
-    def analyze_text(self, data, top_k=1000, data_type = "test"):
+    def analyze_text(self, data, y_true, top_k=1000): 
         self.activations.clear()
         tally = {}
         results = {}
 
         # runs through all the training data
         for i, text in enumerate(tqdm(data, desc="Processing texts", unit="text")):
-            if data_type == "train":
-                question = text['train']['question']
-                choices = text['train']['choices']
-                prompt = (
-                f"Question: {question}\n\nChoices:\n"
-                f"A. {choices[0]}\nB. {choices[1]}\nC. {choices[2]}\nD. {choices[3]}\n"
-                f"Do not explain and give the answer with strictly one letter from options A, B, C, or D.\nAnswer:"
-                )
-            else:
-                prompt = text["text"]
+            prompt = text["text"]
             
             inputs = self.tokenizer(
                 prompt,
@@ -87,11 +80,18 @@ class ActivationAnalyser:
                 else:
                     tally[name] = (tally[name] * i + current_sum) / (i + 1)
                  
+            # compare the activations and select the check to see if it's right
+
+
             # unload inputs and ouputs from gpu
             del inputs
             del outputs
             torch.cuda.empty_cache()
 
+            #clear all info from the following document
+            self.activations.clear()
+            tally = {}
+            results = {}
 
         for name, subtal in tally.items():
             top_values, top_indices = torch.topk(subtal, top_k)
@@ -102,3 +102,36 @@ class ActivationAnalyser:
             }
             
         return results
+
+    def compare_activations():
+        return None
+        
+# loading the model
+base_model_name = "Llama-3.1-8B-Instruct"
+
+base_model = AutoModelForCausalLM.from_pretrained(
+    base_model_name,
+    low_cpu_mem_usage=True,
+    return_dict=True,
+    torch_dtype=torch.float16,
+    device_map="auto"
+)
+
+# Reload tokenizer to save it
+tokenizer = AutoTokenizer.from_pretrained(base_model_name, trust_remote_code=True)
+tokenizer.pad_token = tokenizer.eos_token
+tokenizer.padding_side = "right"
+
+# make sure to turn these off since they will affect the results
+with open('topk/base_auxt.pkl', 'rb') as f:
+    topk_base_auxt = pickle.load(f)
+with open('topk/base_maths.pkl', 'rb') as f:
+    topk_base_maths = pickle.load(f)
+with open('topk/base_physics.pkl', 'rb') as f:
+    topk_base_physics = pickle.load(f)
+with open('topk/base_philosophy.pkl', 'rb') as f:
+    topk_base_philosophy = pickle.load(f)
+with open('topk/base_rand.pkl', 'rb') as f:
+    topk_base_rand = pickle.load(f)
+
+
