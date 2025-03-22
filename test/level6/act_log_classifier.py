@@ -42,7 +42,7 @@ class ActivationAnalyser:
             if "mlp." in name:
                 module.register_forward_hook(self._activation_hook(name))  
     
-    def analyze_text(self, data, y_true, top_k=1000): 
+    def classify(self, data, top_k=1000): 
         self.activations.clear()
         tally = {}
         results = {}
@@ -134,4 +134,23 @@ with open('topk/base_philosophy.pkl', 'rb') as f:
 with open('topk/base_rand.pkl', 'rb') as f:
     topk_base_rand = pickle.load(f)
 
+# loading the data
+data = []
+data_paths = ["data/Philosophy,1970-2022",
+              "Mathematics,1970-2002",
+              "Physics,1970-1997",]
 
+for data_path in data_paths:
+    dataset = load_from_disk(data_path)
+    dataset = dataset[1000:1010]["text"]
+    dataset = [{"text": text} for text in dataset]
+    dataset = Dataset.from_list(dataset)
+    data.append((dataset, data_path))
+
+# shuffle the data
+data = random.sample(data, len(data))
+
+base_analyser = ActivationAnalyser(base_model, tokenizer)
+base_analyser.classify(data)
+
+print  ("process complete")
