@@ -10,26 +10,20 @@ os.environ["VLLM_WORKER_MULTIPROC_METHOD"] = "spawn"
 
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
-from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training, PeftModel
-import numpy as np
-import matplotlib.pyplot as plt
 import pickle
-from datasets import load_dataset
 from datasets import load_from_disk
 from datasets import Dataset
-import time
 from tqdm import tqdm
 import random
-import string
-
 
 # hooks the model to get the activations
 class ActivationAnalyser:
-    def __init__(self, model, tokenizer):
+    def __init__(self, model, tokenizer, act_logs):
         self.tokenizer = tokenizer
         self.model = model
         self.activations = {}
         self._register_hooks()
+        self.act_logs = act_logs
     
     def _activation_hook(self, name):
         def hook(module, input, output):
@@ -42,14 +36,16 @@ class ActivationAnalyser:
             if "mlp." in name:
                 module.register_forward_hook(self._activation_hook(name))  
     
-    def classify(self, data, top_k=1000): 
+    def classify(self, data): 
         self.activations.clear()
         tally = {}
         results = {}
+        total = len(data)
+        ans_correct = 0
 
         # runs through all the training data
         for i, text in enumerate(tqdm(data, desc="Processing texts", unit="text")):
-            prompt = text["text"]
+            prompt = text(0)["text"]
             
             inputs = self.tokenizer(
                 prompt,
@@ -79,9 +75,17 @@ class ActivationAnalyser:
                     tally[name] = current_sum
                 else:
                     tally[name] = (tally[name] * i + current_sum) / (i + 1)
+                
+            for name, subtal in tally.items():
+                top_values, top_indices = torch.topk(subtal, 1000)
+
+                results[name] = {
+                    "indices": top_indices.tolist(),
+                    "values": top_values.tolist()
+                }
                  
             # compare the activations and select the check to see if it's right
-
+            ans_correct += self.compare_activations(text(1))
 
             # unload inputs and ouputs from gpu
             del inputs
@@ -93,19 +97,34 @@ class ActivationAnalyser:
             tally = {}
             results = {}
 
-        for name, subtal in tally.items():
-            top_values, top_indices = torch.topk(subtal, top_k)
+        return (ans_correct/total) * 100
 
-            results[name] = {
-                "indices": top_indices.tolist(),
-                "values": top_values.tolist()
-            }
-            
-        return results
-
-    def compare_activations():
-        return None
+    def compare_activations(self,y_true):
+        result = 0
+        ans = 0
+        for i, act_log in enumerate(self.act_logs):
+            comp = self.compare(self.activations, act_log) 
+            if comp > result:
+                ans = i
+            result = max(comp, result)
         
+        print ("confidence: ", result)
+        if ans == y_true:
+            return 1
+        else:
+            return 0 
+
+    def compare(dict1, dict2):
+        corr = 0
+        total = 0
+        
+        for name in dict1:
+            total += len(dict1[name]['indices'])
+            corr += len(set(dict1[name]['indices']).intersection(set(dict2[name]['indices'])))
+
+        return (corr/total) * 100
+
+
 # loading the model
 base_model_name = "Llama-3.1-8B-Instruct"
 
@@ -134,23 +153,27 @@ with open('topk/base_philosophy.pkl', 'rb') as f:
 with open('topk/base_rand.pkl', 'rb') as f:
     topk_base_rand = pickle.load(f)
 
+# make sure that act logs and data paths are in the same order
+act_logs = (topk_base_maths, topk_base_physics, topk_base_philosophy)
+
 # loading the data
 data = []
-data_paths = ["data/Philosophy,1970-2022",
-              "Mathematics,1970-2002",
-              "Physics,1970-1997",]
+data_paths = ["data/Mathematics,1970-2002",
+              "data/Physics,1970-1997",
+              "data/Philosophy,1970-2022"]
 
-for data_path in data_paths:
+for i, data_path in enumerate(data_paths):
     dataset = load_from_disk(data_path)
     dataset = dataset[1000:1010]["text"]
     dataset = [{"text": text} for text in dataset]
     dataset = Dataset.from_list(dataset)
-    data.append((dataset, data_path))
+    data.append((dataset, i))
 
 # shuffle the data
 data = random.sample(data, len(data))
 
-base_analyser = ActivationAnalyser(base_model, tokenizer)
-base_analyser.classify(data)
+base_analyser = ActivationAnalyser(base_model, tokenizer, act_logs)
+accuracy = base_analyser.classify(data)
 
+print ("\n accuracy: ", accuracy,"%")
 print  ("process complete")
