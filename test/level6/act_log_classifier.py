@@ -18,12 +18,12 @@ import random
 
 # hooks the model to get the activations
 class ActivationAnalyser:
-    def __init__(self, model, tokenizer, act_logs):
+    def __init__(self, model, tokenizer, act_log):
         self.tokenizer = tokenizer
         self.model = model
         self.activations = {}
         self._register_hooks()
-        self.act_logs = act_logs
+        self.act_log = act_log
     
     def _activation_hook(self, name):
         def hook(module, input, output):
@@ -45,7 +45,7 @@ class ActivationAnalyser:
 
         # runs through all the training data
         for i, text in enumerate(tqdm(data, desc="Processing texts", unit="text")):
-            prompt = text(0)["text"]
+            prompt = text[0]["text"]
             
             inputs = self.tokenizer(
                 prompt,
@@ -85,7 +85,7 @@ class ActivationAnalyser:
                 }
                  
             # compare the activations and select the check to see if it's right
-            ans_correct += self.compare_activations(text(1))
+            self.compare_activations(text[1])
 
             # unload inputs and ouputs from gpu
             del inputs
@@ -97,22 +97,16 @@ class ActivationAnalyser:
             tally = {}
             results = {}
 
-        return (ans_correct/total) * 100
-
     def compare_activations(self,y_true):
         result = 0
         ans = 0
-        for i, act_log in enumerate(self.act_logs):
+        for i, act_log in enumerate(self.act_log):
             comp = self.compare(self.activations, act_log) 
             if comp > result:
                 ans = i
             result = max(comp, result)
         
-        print ("confidence: ", result)
-        if ans == y_true:
-            return 1
-        else:
-            return 0 
+        print ("confidence on ",ans,": ", result)
 
     def compare(dict1, dict2):
         corr = 0
@@ -172,8 +166,9 @@ for i, data_path in enumerate(data_paths):
 # shuffle the data
 data = random.sample(data, len(data))
 
-base_analyser = ActivationAnalyser(base_model, tokenizer, act_logs)
-accuracy = base_analyser.classify(data)
+for act_log in act_logs:
+    base_analyser = ActivationAnalyser(base_model, tokenizer, act_log)
+    accuracy = base_analyser.classify(data)
 
 print ("\n accuracy: ", accuracy,"%")
 print  ("process complete")
