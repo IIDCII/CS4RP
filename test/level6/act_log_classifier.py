@@ -36,7 +36,7 @@ class ActivationAnalyser:
             if "mlp." in name:
                 module.register_forward_hook(self._activation_hook(name))  
     
-    def classify(self, data): 
+    def classify(self, data, split = "paper"): 
         self.activations.clear()
         tally = {}
         results = {}
@@ -45,7 +45,12 @@ class ActivationAnalyser:
 
         # runs through all the training data
         for i, text in enumerate(data):
-            prompt = text["text"]
+            if split == "paper":
+                prompt = text["text"]
+            else:
+                question = text['train']['question']
+                choices = text['train']['choices']
+                answer = text['train']['answer']
             
             inputs = self.tokenizer(
                 prompt,
@@ -175,7 +180,7 @@ data = Dataset.from_list(data)
 data = data.shuffle(seed=42)
 
 base_analyser = ActivationAnalyser(base_model, tokenizer, act_logs)
-accuracy = base_analyser.classify(data)
+accuracy = base_analyser.classify(data, split = "mmlu")
 
 print ("\n accuracy: ", accuracy,"%")
 print  ("process complete")
