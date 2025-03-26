@@ -1,13 +1,4 @@
-import random
-import string
+l1 = [1,2,3,4,5]
+set1 = set(l1)
 
-def load_random_data(length, num_sequences):
-    seq = []
-    for _ in range(num_sequences):
-        tokens = ''.join(random.choices(string.ascii_lowercase + ' ', k=length))
-        seq.append(tokens)
-    return seq
-
-s = load_random_data(100,10)
-
-print (s)
+print (set1) 

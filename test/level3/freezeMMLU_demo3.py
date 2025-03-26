@@ -319,40 +319,40 @@ RUN ANALYSIS FOR EVERY VARIATION
 RUN ANALYSIS FOR ONE VARIATION
 """
 
-# this will act as the new model from this point
-manipulator = NeuronManipulator(base_model,tokenizer)
+# # this will act as the new model from this point
+# manipulator = NeuronManipulator(base_model,tokenizer)
 
-k = 1
+k = 10
 mk = 0
 
 # adjust the topk
-topk_act = adjust_topk(topk_base_rand, k, mink = mk)
-# topk_sub = adjust_topk(topk_base_philosophy, k, mink = mk)
+topk_act = adjust_topk(topk_base_maths, k, mink = mk)
+topk_sub = adjust_topk(topk_base_philosophy, k, mink = mk)
 # topk_sub2 = adjust_topk(topk_base_maths, k, mink = mk)
 
-# topk_act = remove_common_values(topk_act,topk_sub)
+topk_act = remove_common_values(topk_act,topk_sub)
 # topk_act = remove_common_values(topk_act,topk_sub2)
 
-disable(topk_act)
+# disable(topk_act)
 
-# Define the dataset name and the subsets you want to load
-data_name = "cais/mmlu"
+# # Define the dataset name and the subsets you want to load
+# data_name = "cais/mmlu"
 # subset_names = ["high_school_physics", "college_physics"] # physics
-subset_names = ["high_school_mathematics", "college_mathematics","elementary_mathematics","abstract_algebra","professional_accounting"] # maths
-# subset_names = ["high_school_mathematics"] # maths
-# subset_names = ["philosophy"] # philosophy
+# # subset_names = ["high_school_mathematics", "college_mathematics","elementary_mathematics","abstract_algebra","professional_accounting"] # maths
+# # subset_names = ["high_school_mathematics"] # maths
+# # subset_names = ["philosophy"] # philosophy
 
-# Load and concatenate the subsets
-datasets = []
-for subset_name in subset_names:
-    dataset = load_dataset(data_name, subset_name, split="test")
-    datasets.append(dataset)
+# # Load and concatenate the subsets
+# datasets = []
+# for subset_name in subset_names:
+#     dataset = load_dataset(data_name, subset_name, split="test")
+#     datasets.append(dataset)
 
-# Combine all subsets into a single dataset
-combined_dataset = concatenate_datasets(datasets)
+# # Combine all subsets into a single dataset
+# combined_dataset = concatenate_datasets(datasets)
 
-manipulator.MMLU(combined_dataset, "test")
+# manipulator.MMLU(combined_dataset, "test")
 
-manipulator.reset_all_neurons()
+# manipulator.reset_all_neurons()
 
 print ("single process complete")

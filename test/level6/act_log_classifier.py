@@ -18,12 +18,12 @@ import random
 
 # hooks the model to get the activations
 class ActivationAnalyser:
-    def __init__(self, model, tokenizer, act_log):
+    def __init__(self, model, tokenizer, act_logs):
         self.tokenizer = tokenizer
         self.model = model
         self.activations = {}
         self._register_hooks()
-        self.act_log = act_log
+        self.act_logs = act_logs
     
     def _activation_hook(self, name):
         def hook(module, input, output):
@@ -44,15 +44,15 @@ class ActivationAnalyser:
         ans_correct = 0
 
         # runs through all the training data
-        for i, text in enumerate(tqdm(data, desc="Processing texts", unit="text")):
-            prompt = text[0]["text"]
+        for i, text in enumerate(data):
+            prompt = text["text"]
             
             inputs = self.tokenizer(
                 prompt,
                 return_tensors="pt",
                 padding="max_length",
                 truncation=True,
-                max_length=4096,
+                max_length=1024,
                 )
             
             with torch.no_grad():
@@ -71,10 +71,7 @@ class ActivationAnalyser:
                 current_sum = activation.sum(dim=(0, 1))
                 
                 # Update tally with running average
-                if i == 0:
-                    tally[name] = current_sum
-                else:
-                    tally[name] = (tally[name] * i + current_sum) / (i + 1)
+                tally[name] = current_sum
                 
             for name, subtal in tally.items():
                 top_values, top_indices = torch.topk(subtal, 1000)
@@ -83,38 +80,46 @@ class ActivationAnalyser:
                     "indices": top_indices.tolist(),
                     "values": top_values.tolist()
                 }
-                 
+            
+            self.activations.clear()
+            tally = {}  
+
             # compare the activations and select the check to see if it's right
-            self.compare_activations(text[1])
+            ans_correct += self.compare_activations(text["class"], results)
 
             # unload inputs and ouputs from gpu
+            results = {}
             del inputs
             del outputs
             torch.cuda.empty_cache()
 
-            #clear all info from the following document
-            self.activations.clear()
-            tally = {}
-            results = {}
+        return (ans_correct / total) * 100 
 
-    def compare_activations(self,y_true):
+    def compare_activations(self,y_true, results):
         result = 0
         ans = 0
-        for i, act_log in enumerate(self.act_log):
-            comp = self.compare(self.activations, act_log) 
+        for i, act_log in enumerate(self.act_logs):
+            comp = self.compare(results, act_log) 
             if comp > result:
                 ans = i
-            result = max(comp, result)
-        
-        print ("confidence on ",ans,": ", result)
+                result = comp 
+            print ("confidence on ", i,": ", comp)
+        print ("y_true: ", y_true, " predicted: ", ans)
 
-    def compare(dict1, dict2):
+        if ans == y_true:
+            return 1
+        else:
+            return 0
+
+    def compare(self, dict1, dict2):
         corr = 0
         total = 0
         
         for name in dict1:
-            total += len(dict1[name]['indices'])
-            corr += len(set(dict1[name]['indices']).intersection(set(dict2[name]['indices'])))
+            if name in dict2:
+                total += len(dict1[name]['indices'])
+                inter =  set(dict1[name]['indices']).intersection(set(dict2[name]['indices']))
+                corr += len(inter)
 
         return (corr/total) * 100
 
@@ -138,37 +143,37 @@ tokenizer.padding_side = "right"
 # make sure to turn these off since they will affect the results
 with open('topk/base_auxt.pkl', 'rb') as f:
     topk_base_auxt = pickle.load(f)
-with open('topk/base_maths.pkl', 'rb') as f:
+with open('topk/base_maths_sparse.pkl', 'rb') as f:
     topk_base_maths = pickle.load(f)
-with open('topk/base_physics.pkl', 'rb') as f:
+with open('topk/base_physics_sparse.pkl', 'rb') as f:
     topk_base_physics = pickle.load(f)
-with open('topk/base_philosophy.pkl', 'rb') as f:
+with open('topk/base_philosophy_sparse.pkl', 'rb') as f:
     topk_base_philosophy = pickle.load(f)
 with open('topk/base_rand.pkl', 'rb') as f:
     topk_base_rand = pickle.load(f)
 
 # make sure that act logs and data paths are in the same order
-act_logs = (topk_base_maths, topk_base_physics, topk_base_philosophy)
+act_logs = (topk_base_maths, topk_base_philosophy, topk_base_physics)
 
 # loading the data
 data = []
+data_class = []
+docs = 10
 data_paths = ["data/Mathematics,1970-2002",
-              "data/Physics,1970-1997",
-              "data/Philosophy,1970-2022"]
+              "data/Philosophy,1970-2022",
+              "data/Physics,1970-1997",]
 
 for i, data_path in enumerate(data_paths):
     dataset = load_from_disk(data_path)
-    dataset = dataset[1000:1010]["text"]
-    dataset = [{"text": text} for text in dataset]
-    dataset = Dataset.from_list(dataset)
-    data.append((dataset, i))
+    data = data + dataset[1000:1000 + docs]["text"]
+    for _ in range(docs):
+        data_class.append(i)
 
-# shuffle the data
-data = random.sample(data, len(data))
+data = [{"text": text, "class": data_class[i]} for i, text in enumerate(data)]
+data = Dataset.from_list(data)
 
-for act_log in act_logs:
-    base_analyser = ActivationAnalyser(base_model, tokenizer, act_log)
-    accuracy = base_analyser.classify(data)
+base_analyser = ActivationAnalyser(base_model, tokenizer, act_logs)
+accuracy = base_analyser.classify(data)
 
 print ("\n accuracy: ", accuracy,"%")
 print  ("process complete")
