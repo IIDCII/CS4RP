@@ -3,127 +3,36 @@ nohup: ignoring input
   warnings.warn(_BETA_TRANSFORMS_WARNING)
 /mnt/fast0/dc903/CS4RP/rpenv/lib/python3.8/site-packages/torchvision/transforms/v2/__init__.py:54: UserWarning: The torchvision.datapoints and torchvision.transforms.v2 namespaces are still Beta. While we do not expect major breaking changes, some APIs may still change according to user feedback. Please submit any feedback you may have in this issue: https://github.com/pytorch/vision/issues/6753, and you can also check out https://github.com/pytorch/vision/issues/7319 to learn more about the APIs that we suspect might involve future changes. You can silence this warning by calling torchvision.disable_beta_transforms_warning().
   warnings.warn(_BETA_TRANSFORMS_WARNING)
-Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:02<00:07,  2.50s/it]Loading checkpoint shards:  50%|█████     | 2/4 [00:04<00:04,  2.45s/it]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:07<00:02,  2.42s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:07<00:00,  1.73s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:07<00:00,  1.99s/it]
-confidence on  0 :  77.58515625
-confidence on  1 :  72.76328125
-confidence on  2 :  71.9328125
-y_true:  2  predicted:  0
-confidence on  0 :  72.67890625
-confidence on  1 :  76.08984375
-confidence on  2 :  69.5859375
-y_true:  1  predicted:  1
-confidence on  0 :  77.6453125
-confidence on  1 :  74.61093749999999
-confidence on  2 :  72.484375
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:02<00:06,  2.30s/it]Loading checkpoint shards:  50%|█████     | 2/4 [00:04<00:04,  2.45s/it]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:07<00:02,  2.43s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:07<00:00,  1.72s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:07<00:00,  1.97s/it]
+confidence on  0 :  50.20312500000001
+confidence on  1 :  48.221875
+confidence on  2 :  49.1015625
 y_true:  0  predicted:  0
-confidence on  0 :  76.50078125
-confidence on  1 :  72.6734375
-confidence on  2 :  72.87812500000001
-y_true:  2  predicted:  0
-confidence on  0 :  79.0265625
-confidence on  1 :  72.89921875
-confidence on  2 :  72.01640625
-y_true:  2  predicted:  0
-confidence on  0 :  70.646875
-confidence on  1 :  70.98203125
-confidence on  2 :  76.39453125
-y_true:  2  predicted:  2
-confidence on  0 :  77.34375
-confidence on  1 :  71.22109375
-confidence on  2 :  70.0390625
+confidence on  0 :  45.93515625
+confidence on  1 :  44.47109375
+confidence on  2 :  45.56640625
 y_true:  0  predicted:  0
-confidence on  0 :  75.34531249999999
-confidence on  1 :  69.78984375
-confidence on  2 :  73.82968749999999
-y_true:  2  predicted:  0
-confidence on  0 :  73.309375
-confidence on  1 :  67.90546875
-confidence on  2 :  69.28671874999999
-y_true:  2  predicted:  0
-confidence on  0 :  66.878125
-confidence on  1 :  72.9796875
-confidence on  2 :  67.91875
-y_true:  1  predicted:  1
-confidence on  0 :  73.09140625
-confidence on  1 :  67.60468750000001
-confidence on  2 :  66.23281250000001
-y_true:  1  predicted:  0
-confidence on  0 :  70.1328125
-confidence on  1 :  70.79765625
-confidence on  2 :  70.34765625
-y_true:  2  predicted:  1
-confidence on  0 :  77.43984375000001
-confidence on  1 :  72.01015625
-confidence on  2 :  71.29609375
+confidence on  0 :  47.18828125
+confidence on  1 :  45.88046875
+confidence on  2 :  46.059375
 y_true:  0  predicted:  0
-confidence on  0 :  74.73359375000001
-confidence on  1 :  68.52265625
-confidence on  2 :  66.65859375
+confidence on  0 :  47.46640625
+confidence on  1 :  46.568749999999994
+confidence on  2 :  47.071875
 y_true:  0  predicted:  0
-confidence on  0 :  63.760937500000004
-confidence on  1 :  69.69999999999999
-confidence on  2 :  66.109375
-y_true:  1  predicted:  1
-confidence on  0 :  77.08749999999999
-confidence on  1 :  71.7296875
-confidence on  2 :  71.18046875
+confidence on  0 :  51.64062499999999
+confidence on  1 :  49.56875
+confidence on  2 :  49.865625
 y_true:  0  predicted:  0
-confidence on  0 :  76.98359375
-confidence on  1 :  71.8671875
-confidence on  2 :  68.9546875
+confidence on  0 :  47.203125
+confidence on  1 :  46.603125
+confidence on  2 :  47.19296875
 y_true:  0  predicted:  0
-confidence on  0 :  77.40390625
-confidence on  1 :  74.02421875
-confidence on  2 :  70.43984375
-y_true:  1  predicted:  0
-confidence on  0 :  76.12343750000001
-confidence on  1 :  72.48281250000001
-confidence on  2 :  69.4765625
-y_true:  1  predicted:  0
-confidence on  0 :  68.27421875
-confidence on  1 :  69.18046875
-confidence on  2 :  73.35546875
-y_true:  2  predicted:  2
-confidence on  0 :  77.471875
-confidence on  1 :  71.48203125
-confidence on  2 :  69.7765625
-y_true:  1  predicted:  0
-confidence on  0 :  64.01015625000001
-confidence on  1 :  70.1
-confidence on  2 :  66.85078125
-y_true:  1  predicted:  1
-confidence on  0 :  71.0875
-confidence on  1 :  76.21640625
-confidence on  2 :  72.36484374999999
-y_true:  1  predicted:  1
-confidence on  0 :  66.57499999999999
-confidence on  1 :  68.59296875000001
-confidence on  2 :  71.75390625
-y_true:  2  predicted:  2
-confidence on  0 :  76.7
-confidence on  1 :  72.96171875
-confidence on  2 :  70.471875
+confidence on  0 :  47.290625
+confidence on  1 :  46.44921875
+confidence on  2 :  47.26875
 y_true:  0  predicted:  0
-confidence on  0 :  79.68203125
-confidence on  1 :  74.13593750000001
-confidence on  2 :  72.56640625
+confidence on  0 :  45.280468750000004
+confidence on  1 :  43.84609375
+confidence on  2 :  44.379687499999996
 y_true:  0  predicted:  0
-confidence on  0 :  73.32421875
-confidence on  1 :  71.8984375
-confidence on  2 :  76.91484374999999
-y_true:  2  predicted:  2
-confidence on  0 :  76.77421875
-confidence on  1 :  75.16953125
-confidence on  2 :  72.2421875
-y_true:  0  predicted:  0
-confidence on  0 :  71.1640625
-confidence on  1 :  73.77421875
-confidence on  2 :  70.70546875
-y_true:  1  predicted:  1
-confidence on  0 :  75.20546875000001
-confidence on  1 :  70.4453125
-confidence on  2 :  73.45859375
-y_true:  0  predicted:  0
-
- accuracy:  66.66666666666666 %
-process complete

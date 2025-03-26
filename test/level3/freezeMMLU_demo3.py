@@ -83,7 +83,6 @@ class NeuronManipulator:
                     f"Do not explain and give the answer with strictly one letter from options A, B, C, or D.\nAnswer:"
                 )
 
-
             inputs = self.tokenizer(prompt, return_tensors="pt", truncation=True)
 
             # set the inputs to cuda
@@ -337,10 +336,10 @@ disable(topk_act)
 
 # Define the dataset name and the subsets you want to load
 data_name = "cais/mmlu"
-subset_names = ["high_school_physics", "college_physics"] # physics
+# subset_names = ["high_school_physics", "college_physics"] # physics
 # subset_names = ["high_school_mathematics", "college_mathematics","elementary_mathematics","abstract_algebra","professional_accounting"] # maths
 # subset_names = ["high_school_mathematics"] # maths
-# subset_names = ["philosophy"] # philosophy
+subset_names = ["philosophy"] # philosophy
 
 # Load and concatenate the subsets
 datasets = []
@@ -348,11 +347,11 @@ for subset_name in subset_names:
     dataset = load_dataset(data_name, subset_name, split="test")
     datasets.append(dataset)
 
-# # Combine all subsets into a single dataset
-# combined_dataset = concatenate_datasets(datasets)
+# Combine all subsets into a single dataset
+combined_dataset = concatenate_datasets(datasets)
 
-# manipulator.MMLU(combined_dataset, "test")
+manipulator.MMLU(combined_dataset, "test")
 
-# manipulator.reset_all_neurons()
+manipulator.reset_all_neurons()
 
 print ("single process complete")
