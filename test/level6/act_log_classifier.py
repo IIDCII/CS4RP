@@ -52,7 +52,7 @@ class ActivationAnalyser:
                 return_tensors="pt",
                 padding="max_length",
                 truncation=True,
-                max_length=1024,
+                max_length=4096,
                 )
             
             with torch.no_grad():
@@ -170,7 +170,9 @@ for i, data_path in enumerate(data_paths):
         data_class.append(i)
 
 data = [{"text": text, "class": data_class[i]} for i, text in enumerate(data)]
+
 data = Dataset.from_list(data)
+data = data.shuffle(seed=42)
 
 base_analyser = ActivationAnalyser(base_model, tokenizer, act_logs)
 accuracy = base_analyser.classify(data)
