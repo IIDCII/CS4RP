@@ -2,7 +2,6 @@
 # look at CS4RP scientific process ## lvl2 steps for more info
 
 import os
-from re import sub
 # set the GPUs
 os.environ["CUDA_VISIBLE_DEVICES"] = "0,1,2,3"
 # setting for vllm inference so that it can run in parallel
@@ -10,12 +9,7 @@ os.environ["VLLM_WORKER_MULTIPROC_METHOD"] = "spawn"
 
 import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
-from peft import LoraConfig, get_peft_model, prepare_model_for_kbit_training, PeftModel
-from datasets import load_dataset, concatenate_datasets
-import numpy as np
-import matplotlib.pyplot as plt
 import pickle
-import copy
 
 
 class NeuronManipulator:
@@ -51,12 +45,8 @@ class NeuronManipulator:
         """Reset all disabled neurons, re-enabling them"""
         self.amplified_neurons.clear()
     
-    def MMLU(self, dataset, data_type = "test"):    
-        correct = 0
-        total = 0
-
+    def inference(self, dataset):    
         for prompt in dataset:
-
             print (f"prompt: {prompt}")
 
             inputs = self.tokenizer(prompt, return_tensors="pt", truncation=True)
@@ -73,7 +63,7 @@ class NeuronManipulator:
                 )
             
             # print (self.tokenizer.decode(outputs[0][-1:], skip_special_tokens=True).strip())
-            response = self.tokenizer.decode(outputs[0][-1:], skip_special_tokens=True).strip()
+            response = self.tokenizer.decode(outputs[0], skip_special_tokens=True).strip()
 
             print(f"response: {response}")
 
@@ -127,7 +117,7 @@ def amplify(topk_act, amp_value = 1.15):
         manipulator.amplify_neurons(layer_name, neurons_to_amplify, amp_value) 
     print ("total number of neurons amplified: ", count)
 
-
+print(torch.cuda.is_available())  
 
 # loading the model
 base_model_name = "Llama-3.1-8B-Instruct"
@@ -167,16 +157,16 @@ k = 100
 mk = 0
 
 # adjust the topk
-topk_act = adjust_topk(topk_base_philosophy, k, mink = mk)
+topk_act = adjust_topk(topk_base_maths, k, mink = mk)
 topk_sub = adjust_topk(topk_base_auxt, k, mink = mk)
 
 topk_act = remove_common_values(topk_act,topk_sub)
 
-amplify(topk_act, amp_value = 1.15)
+# amplify(topk_act, amp_value = 1.15)
 
 query = ["Can you tell me about the city of Bath?"]
 
-manipulator.MMLU(query, "test")
+manipulator.inference(query)
 
 manipulator.reset_all_neurons()
 
