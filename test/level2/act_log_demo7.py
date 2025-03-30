@@ -4,7 +4,7 @@ act log 5 but getting the average based on the activations but based on all of t
 
 import os
 # set the GPUs
-os.environ["CUDA_VISIBLE_DEVICES"] = "3,4"
+os.environ["CUDA_VISIBLE_DEVICES"] = "5,6"
 # setting for vllm inference so that it can run in parallel
 os.environ["VLLM_WORKER_MULTIPROC_METHOD"] = "spawn"
 
@@ -28,8 +28,8 @@ class ActivationAnalyser:
     def _activation_hook(self, name):
         def hook(module, input, output):
             if name not in self.activations:
-                self.activations[name] = output.detach()
-            self.activations[name] = self.activations[name] + output.detach()
+                self.activations[name] = output
+            self.activations[name] = self.activations[name] + output
         return hook
     
     def _register_hooks(self):
@@ -58,8 +58,8 @@ class ActivationAnalyser:
             
             # add the activations per text to the tally
             for name, activation in self.activations.items():
-                activation[abs(activation)%1 <= 0.15] = 0
-                activation[activation != 0] += 1
+                activation[abs(activation)%1 <= 0.7] = 0
+                activation[activation != 0] += 0.001
                 
             # unload inputs and ouputs from gpu
             del inputs
@@ -69,8 +69,10 @@ class ActivationAnalyser:
         results = {}
 
         for name, activation in self.activations.items():
-            # get the activation
-            tally = activation.abs().sum(dim=(0, 1)).detach()
+            # get the activation (get the mean for each column)
+            if name == 'model.layers.0.mlp.gate_proj':
+                print(activation.shape)
+            tally = activation.abs().mean(dim=(0,1))
 
             top_values, top_indices = torch.topk(tally, top_k)
             
@@ -78,7 +80,6 @@ class ActivationAnalyser:
                 "indices": top_indices.tolist(),
                 "values": top_values.tolist()
             }
-            
         return results
     
     def visualize_activations(self, results, layer_name):
