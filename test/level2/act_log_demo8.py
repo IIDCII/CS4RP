@@ -19,6 +19,8 @@ from datasets import load_from_disk
 from datasets import Dataset
 import time
 from tqdm import tqdm
+import random
+import string
 
 class ActivationAnalyser:
     def __init__(self, model, tokenizer):
@@ -38,16 +40,31 @@ class ActivationAnalyser:
             if "mlp." in name:
                 module.register_forward_hook(self._activation_hook(name))  
     
-    def analyze_text(self, data, top_k=1000):
+    def analyze_text(self, data, top_k=1000, data_type = "test"):
         self.activations.clear()
         tally = {}
         results = {}
 
         # runs through all the training data
-        for i, text in enumerate(tqdm(data, desc="Processing texts", unit="text"), ):
+        for i, text in enumerate(tqdm(data, desc="Processing texts", unit="text")):
+            if data_type == "train":
+                question = text['train']['question']
+                choices = text['train']['choices']
+                prompt = (
+                f"Question: {question}\n\nChoices:\n"
+                f"A. {choices[0]}\nB. {choices[1]}\nC. {choices[2]}\nD. {choices[3]}\n"
+                f"Do not explain and give the answer with strictly one letter from options A, B, C, or D.\nAnswer:"
+                )
+            else:
+                prompt = text["text"]
+
+                # randomise the token order
+                # prompt = prompt.split()
+                # random.shuffle(prompt)
+                # prompt = ' '.join(prompt)
 
             inputs = self.tokenizer(
-                text["text"],
+                prompt,
                 return_tensors="pt",
                 padding="max_length",
                 truncation=True,
@@ -61,7 +78,7 @@ class ActivationAnalyser:
             for name, activation in self.activations.items():
                 # setting the value to 1 or 2 whether it's greater or smaller than 0.1
                 activation = torch.where(
-                    torch.abs(activation) <= 0.1, 
+                    torch.abs(activation) <= 5,
                     torch.tensor(1.0, device=activation.device), 
                     torch.tensor(2.0, device=activation.device)
                 )
@@ -88,16 +105,25 @@ class ActivationAnalyser:
                 "indices": top_indices.tolist(),
                 "values": top_values.tolist()
             }
+            
         return results
-    
-    def visualize_activations(self, results, layer_name):
-        plt.figure(figsize=(10, 6))
-        plt.bar(range(len(results[layer_name]["values"])), 
-                results[layer_name]["values"])
-        plt.title(f"Top Neuron Activations in {layer_name}")
-        plt.xlabel("Neuron Index")
-        plt.ylabel("Mean Activation")
-        plt.show()
+
+def load_data(name = "", subset_name="", data_range = 10, data_type = "test"):
+    if data_type == "test":
+        data_path = name
+        dataset = load_from_disk(data_path)
+        dataset = dataset[:data_range]["text"]
+        dataset = [{"text": text} for text in dataset]
+        dataset = Dataset.from_list(dataset)
+
+    elif data_type == "train":
+        data_name = name
+        subset_name = subset_name
+        dataset = load_dataset(data_name, subset_name, split = "train")
+        dataset = dataset.select(range(data_range))
+
+    return dataset
+
 
 # loading the model
 base_model_name = "Llama-3.1-8B-Instruct"
@@ -115,8 +141,11 @@ tokenizer = AutoTokenizer.from_pretrained(base_model_name, trust_remote_code=Tru
 tokenizer.pad_token = tokenizer.eos_token
 tokenizer.padding_side = "right"
 
+# load training
+# dataset = load_data(name = "cais/mmlu", subset_name = "auxiliary_train", data_range = 1000, data_type = "train")
+
 # loading the data
-data_path = "data/Philosophy,1970-2022"
+data_path = "data/Mathematics,1970-2002"
 dataset = load_from_disk(data_path)
 dataset = dataset[:1000]["text"]
 dataset = [{"text": text} for text in dataset]
@@ -127,14 +156,14 @@ base_analyser = ActivationAnalyser(base_model, tokenizer)
 
 # get the topk for that single node given maths
 # k set to 1000
-bf = base_analyser.analyze_text(dataset, top_k=1000)
+bf = base_analyser.analyze_text(dataset, top_k=1000, data_type = "test")
 
 # store all of the results
 # make sure the file name is correct
-with open('topk/base_philosophy.pkl', 'wb') as f:
+with open('topk/base_maths_s5.pkl', 'wb') as f:
     pickle.dump(bf, f)
 
-with open('topk/base_philosophy.pkl', 'rb') as f:
+with open('topk/base_maths_s5.pkl', 'rb') as f:
     loaded_dict = pickle.load(f)
 
 print ("process complete")

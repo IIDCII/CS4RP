@@ -22,16 +22,17 @@ class NeuronManipulator:
     def __init__(self, model, tokenizer):
         self.tokenizer = tokenizer
         self.model = model
-        self.disabled_neurons = {}
+        self.amplified_neurons = {}
+        self.amp_factor = {}
         self._register_hooks()
     
     def _manipulation_hook(self, name):
         def hook(module, input, output):
             # If this layer has disabled neurons, zero them out
-            if name in self.disabled_neurons:
+            if name in self.amplified_neurons:
                 mask = torch.ones_like(output)
-                for neuron_idx in self.disabled_neurons[name]:
-                    mask[:, :, neuron_idx] = 0
+                for neuron_idx in self.amplified_neurons[name]:
+                    mask[:, :, neuron_idx] = self.amp_factor.get(name)
                 return output * mask
             return output
         return hook
@@ -41,23 +42,14 @@ class NeuronManipulator:
             if "mlp" in name or "attention" in name:
                 module.register_forward_hook(self._manipulation_hook(name))
     
-    def disable_neurons(self, layer_name, neuron_indices):
+    def amplify_neurons(self, layer_name, neuron_indices, amp_factor = 1.15):
         """Disable specific neurons in a layer"""
-        self.disabled_neurons[layer_name] = neuron_indices
-    
-    def enable_neurons(self, layer_name, neuron_indices=None):
-        """Re-enable specific or all neurons in a layer"""
-        if neuron_indices is None:
-            self.disabled_neurons.pop(layer_name, None)
-        else:
-            self.disabled_neurons[layer_name] = [
-                n for n in self.disabled_neurons.get(layer_name, [])
-                if n not in neuron_indices
-            ]
+        self.amplified_neurons[layer_name] = neuron_indices
+        self.amp_factor[layer_name] = amp_factor
     
     def reset_all_neurons(self):
         """Reset all disabled neurons, re-enabling them"""
-        self.disabled_neurons.clear()
+        self.amplified_neurons.clear()
     
     def MMLU(self, dataset, data_type = "test"):    
         correct = 0
@@ -82,6 +74,7 @@ class NeuronManipulator:
                     f"A. {choices[0]}\nB. {choices[1]}\nC. {choices[2]}\nD. {choices[3]}\n"
                     f"Do not explain and give the answer with strictly one letter from options A, B, C, or D.\nAnswer:"
                 )
+
 
             inputs = self.tokenizer(prompt, return_tensors="pt", truncation=True)
 
@@ -152,17 +145,15 @@ def adjust_topk(data, topk: int, mink=0):
     
     return result
 
-
-
 # analysis
-def disable(topk_act):
+def amplify(topk_act, amp_value = 1.15):
     count = 0
     for i in range(len(topk_act)):
         count += len(list(topk_act.items())[i][1]['indices'])
-        neurons_to_disable = list(topk_act.items())[i][1]['indices']
+        neurons_to_amplify = list(topk_act.items())[i][1]['indices']
         layer_name = list(topk_act.items())[i][0]
-        manipulator.disable_neurons(layer_name, neurons_to_disable) 
-    print ("total number of neurons disabled: ", count)
+        manipulator.amplify_neurons(layer_name, neurons_to_amplify, amp_value) 
+    print ("total number of neurons amplified: ", count)
 
 
 def run_analysis(subset_dict, topk_base, test_ranges, runs = 3):
@@ -201,7 +192,7 @@ def run_analysis(subset_dict, topk_base, test_ranges, runs = 3):
 
                                 manipulator = NeuronManipulator(base_model,tokenizer)
                                 manipulator.reset_all_neurons()
-                                disable(topk_act)
+                                amplify(topk_act)
                                 
                                 result += manipulator.MMLU(combined_dataset, "test")
                             print ("avg mmlu score: ", result/runs, "\n------------")
@@ -218,11 +209,10 @@ def run_analysis(subset_dict, topk_base, test_ranges, runs = 3):
 
                                 manipulator = NeuronManipulator(base_model,tokenizer)
                                 manipulator.reset_all_neurons()
-                                disable(topk_act)
+                                amplify(topk_act)
                                 
                                 result += manipulator.MMLU(combined_dataset, "test")
                             print ("avg mmlu score: ", result/runs, "\n------------")
-                        
 
 
 def run_rand_analysis(subset_dict, topk_base, test_ranges, runs = 3):
@@ -249,7 +239,7 @@ def run_rand_analysis(subset_dict, topk_base, test_ranges, runs = 3):
 
                 manipulator = NeuronManipulator(base_model,tokenizer)
                 manipulator.reset_all_neurons()
-                disable(topk_act)
+                amplify(topk_act)
                 
                 result += manipulator.MMLU(combined_dataset, "test")
             print ("avg mmlu score: ", result/runs, "\n------------")
@@ -318,21 +308,19 @@ RUN ANALYSIS FOR EVERY VARIATION
 RUN ANALYSIS FOR ONE VARIATION
 """
 
-# # this will act as the new model from this point
-# manipulator = NeuronManipulator(base_model,tokenizer)
+# this will act as the new model from this point
+manipulator = NeuronManipulator(base_model,tokenizer)
 
-k = 10
+k = 100
 mk = 0
 
 # adjust the topk
-topk_act = adjust_topk(topk_base_maths, k, mink = mk)
-topk_sub = adjust_topk(topk_base_philosophy, k, mink = mk)
-# topk_sub2 = adjust_topk(topk_base_maths, k, mink = mk)
+topk_act = adjust_topk(topk_base_philosophy, k, mink = mk)
+topk_sub = adjust_topk(topk_base_auxt, k, mink = mk)
 
 topk_act = remove_common_values(topk_act,topk_sub)
-# topk_act = remove_common_values(topk_act,topk_sub2)
 
-disable(topk_act)
+amplify(topk_act, amp_value = 1.15)
 
 # Define the dataset name and the subsets you want to load
 data_name = "cais/mmlu"

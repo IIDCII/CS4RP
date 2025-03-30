@@ -5,7 +5,7 @@ just realised that you should just take the k=1000 and then you can crop it late
 
 import os
 # set the GPUs
-os.environ["CUDA_VISIBLE_DEVICES"] = "0,1"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0,1,2,3"
 # setting for vllm inference so that it can run in parallel
 os.environ["VLLM_WORKER_MULTIPROC_METHOD"] = "spawn"
 
@@ -38,10 +38,9 @@ class ActivationAnalyzer:
     def analyze_text(self, prompts, top_k=1000, data_type = "test"):
         self.activations.clear()
         
-        for text in prompts:
+        for i, text in enumerate(prompts):
             # print progress
-            print(f"Processing text {text}")
-
+            print(f"Processing text {i+1}/{len(prompts)}")
             # format the prompt
             if data_type == 'test':
                 question = text['question']
@@ -56,21 +55,33 @@ class ActivationAnalyzer:
             f"Do not explain and give the answer with strictly one letter from options A, B, C, or D.\nAnswer:"
             )
 
-            inputs = self.tokenizer(prompt, return_tensors="pt")
+            inputs = self.tokenizer(
+                prompt,
+                return_tensors="pt",
+                padding="max_length",
+                truncation=True,
+                max_length=4096,
+                )
             
             with torch.no_grad():
                 outputs = self.model(**inputs)
             
+            # add the activations per text to the tally
+            for name, activation in self.activations.items():
+                activation[abs(activation)%1 <= 0.15] = 0
+                activation[activation != 0] += 1
+                
+            # unload inputs and ouputs from gpu
+            del inputs
+            del outputs
+            torch.cuda.empty_cache()
+        
         results = {}
-        for name, activation in self.activations.items():
-            # if abs(activation) <= 0.07 then set to 0, else set to 1
-            activation[abs(activation) <= 0.07] = 0
-            activation[activation != 0] = 1
 
-            # get the tally
-            tally = activation.abs().sum(dim=(0, 1))
-            
-            # Get top-k neurons (neurons with the highest tally)
+        for name, activation in self.activations.items():
+            # get the activation
+            tally = activation.abs().mean(dim=(0, 1))
+
             top_values, top_indices = torch.topk(tally, top_k)
             
             results[name] = {
@@ -143,7 +154,7 @@ data_name = "cais/mmlu"
 subset_name = "auxiliary_train"
 
 dataset = load_dataset(data_name, subset_name, split = "train")
-dataset = dataset.select(range(1000))
+dataset = dataset.select(range(1))
 
 # active neuron eval
 base_analyzer = ActivationAnalyzer(base_model, tokenizer)
