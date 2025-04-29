@@ -3,7 +3,7 @@
 
 import os
 # set the GPUs
-os.environ["CUDA_VISIBLE_DEVICES"] = "0,1,2,3"
+os.environ["CUDA_VISIBLE_DEVICES"] = "5,7"
 # setting for vllm inference so that it can run in parallel
 os.environ["VLLM_WORKER_MULTIPROC_METHOD"] = "spawn"
 
@@ -57,9 +57,10 @@ class NeuronManipulator:
             with torch.no_grad():
                 outputs = self.model.generate(
                     **inputs,
-                    max_new_tokens=4096,
+                    max_new_tokens=512,
                     temperature = 0.1,
                     pad_token_id=self.tokenizer.eos_token_id,
+                    # repetition_penalty = 1.2,
                 )
             
             # print (self.tokenizer.decode(outputs[0][-1:], skip_special_tokens=True).strip())
@@ -117,8 +118,6 @@ def amplify(topk_act, amp_value = 1.15):
         manipulator.amplify_neurons(layer_name, neurons_to_amplify, amp_value) 
     print ("total number of neurons amplified: ", count)
 
-print(torch.cuda.is_available())  
-
 # loading the model
 base_model_name = "Llama-3.1-8B-Instruct"
 
@@ -153,16 +152,16 @@ with open('topk/base_rand.pkl', 'rb') as f:
 # this will act as the new model from this point
 manipulator = NeuronManipulator(base_model,tokenizer)
 
-k = 100
+k = 10
 mk = 0
 
 # adjust the topk
 topk_act = adjust_topk(topk_base_maths, k, mink = mk)
-topk_sub = adjust_topk(topk_base_auxt, k, mink = mk)
+topk_sub = adjust_topk(topk_base_philosophy, k, mink = mk)
 
 topk_act = remove_common_values(topk_act,topk_sub)
 
-# amplify(topk_act, amp_value = 1.15)
+amplify(topk_act, amp_value = 3)
 
 query = ["Can you tell me about the city of Bath?"]
 

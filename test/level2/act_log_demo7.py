@@ -88,7 +88,6 @@ class ActivationAnalyser:
                 "indices": top_indices.tolist(),
                 "values": top_values.tolist()
             }
-            
         return results
     
     def visualize_activations(self, results, layer_name):
