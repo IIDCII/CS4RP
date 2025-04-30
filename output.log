@@ -1,37 +1,33 @@
 nohup: ignoring input
-/mnt/fast0/dc903/CS4RP/rpenv/lib/python3.8/site-packages/torchvision/datapoints/__init__.py:12: UserWarning: The torchvision.datapoints and torchvision.transforms.v2 namespaces are still Beta. While we do not expect major breaking changes, some APIs may still change according to user feedback. Please submit any feedback you may have in this issue: https://github.com/pytorch/vision/issues/6753, and you can also check out https://github.com/pytorch/vision/issues/7319 to learn more about the APIs that we suspect might involve future changes. You can silence this warning by calling torchvision.disable_beta_transforms_warning().
-  warnings.warn(_BETA_TRANSFORMS_WARNING)
-/mnt/fast0/dc903/CS4RP/rpenv/lib/python3.8/site-packages/torchvision/transforms/v2/__init__.py:54: UserWarning: The torchvision.datapoints and torchvision.transforms.v2 namespaces are still Beta. While we do not expect major breaking changes, some APIs may still change according to user feedback. Please submit any feedback you may have in this issue: https://github.com/pytorch/vision/issues/6753, and you can also check out https://github.com/pytorch/vision/issues/7319 to learn more about the APIs that we suspect might involve future changes. You can silence this warning by calling torchvision.disable_beta_transforms_warning().
-  warnings.warn(_BETA_TRANSFORMS_WARNING)
-Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:10<00:32, 10.88s/it]Loading checkpoint shards:  50%|█████     | 2/4 [00:21<00:21, 10.95s/it]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:32<00:10, 10.90s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:35<00:00,  7.70s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:35<00:00,  8.88s/it]
-Processing texts:   0%|          | 0/1000 [00:00<?, ?text/s]Processing texts:   0%|          | 0/1000 [00:04<?, ?text/s]
-Traceback (most recent call last):
-  File "./test/level2/act_log_demo8.py", line 159, in <module>
-    bf = base_analyser.analyze_text(dataset, top_k=1000, data_type = "test")
-  File "./test/level2/act_log_demo8.py", line 75, in analyze_text
-    outputs = self.model(**inputs)
-  File "/mnt/fast0/dc903/CS4RP/rpenv/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1501, in _call_impl
-    return forward_call(*args, **kwargs)
-  File "/mnt/fast0/dc903/CS4RP/rpenv/lib/python3.8/site-packages/accelerate/hooks.py", line 170, in new_forward
-    output = module._old_forward(*args, **kwargs)
-  File "/mnt/fast0/dc903/CS4RP/rpenv/lib/python3.8/site-packages/transformers/models/llama/modeling_llama.py", line 1190, in forward
-    outputs = self.model(
-  File "/mnt/fast0/dc903/CS4RP/rpenv/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1501, in _call_impl
-    return forward_call(*args, **kwargs)
-  File "/mnt/fast0/dc903/CS4RP/rpenv/lib/python3.8/site-packages/transformers/models/llama/modeling_llama.py", line 945, in forward
-    layer_outputs = decoder_layer(
-  File "/mnt/fast0/dc903/CS4RP/rpenv/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1501, in _call_impl
-    return forward_call(*args, **kwargs)
-  File "/mnt/fast0/dc903/CS4RP/rpenv/lib/python3.8/site-packages/accelerate/hooks.py", line 170, in new_forward
-    output = module._old_forward(*args, **kwargs)
-  File "/mnt/fast0/dc903/CS4RP/rpenv/lib/python3.8/site-packages/transformers/models/llama/modeling_llama.py", line 676, in forward
-    hidden_states, self_attn_weights, present_key_value = self.self_attn(
-  File "/mnt/fast0/dc903/CS4RP/rpenv/lib/python3.8/site-packages/torch/nn/modules/module.py", line 1501, in _call_impl
-    return forward_call(*args, **kwargs)
-  File "/mnt/fast0/dc903/CS4RP/rpenv/lib/python3.8/site-packages/accelerate/hooks.py", line 170, in new_forward
-    output = module._old_forward(*args, **kwargs)
-  File "/mnt/fast0/dc903/CS4RP/rpenv/lib/python3.8/site-packages/transformers/models/llama/modeling_llama.py", line 373, in forward
-    attn_weights = nn.functional.softmax(attn_weights, dim=-1, dtype=torch.float32).to(query_states.dtype)
-  File "/mnt/fast0/dc903/CS4RP/rpenv/lib/python3.8/site-packages/torch/nn/functional.py", line 1845, in softmax
-    ret = input.softmax(dim, dtype=dtype)
-torch.cuda.OutOfMemoryError: CUDA out of memory. Tried to allocate 2.00 GiB (GPU 1; 15.74 GiB total capacity; 5.85 GiB already allocated; 1.26 GiB free; 7.53 GiB reserved in total by PyTorch) If reserved memory is >> allocated memory try setting max_split_size_mb to avoid fragmentation.  See documentation for Memory Management and PYTORCH_CUDA_ALLOC_CONF
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:03<00:09,  3.27s/it]Loading checkpoint shards:  50%|█████     | 2/4 [00:05<00:05,  2.63s/it]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:06<00:01,  1.85s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:06<00:00,  1.20s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:06<00:00,  1.65s/it]
+Some parameters are on the meta device because they were offloaded to the cpu.
+------------------------ testing on mmlu  physics
+base mmlu with no nodes turned off
+MMLU score:  40.71146245059288
+MMLU score:  39.52569169960474
+MMLU score:  39.130434782608695
+avg mmlu score:  39.78919631093544 
+------------
+-------------------  testing on topk range k =  3 mk =  0
+maths  sub auxt
+total number of neurons disabled:  277
+MMLU score:  26.877470355731226
+total number of neurons disabled:  277
+MMLU score:  25.691699604743086
+total number of neurons disabled:  277
+MMLU score:  28.458498023715418
+avg mmlu score:  27.009222661396578 
+------------
+physics  sub auxt
+total number of neurons disabled:  270
+MMLU score:  15.810276679841898
+total number of neurons disabled:  270
+MMLU score:  13.83399209486166
+total number of neurons disabled:  270
+MMLU score:  15.810276679841898
+avg mmlu score:  15.15151515151515 
+------------
+philosophy  sub auxt
+total number of neurons disabled:  272
+MMLU score:  11.462450592885375
+total number of neurons disabled:  272

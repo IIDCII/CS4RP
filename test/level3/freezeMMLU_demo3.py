@@ -280,11 +280,11 @@ manipulator = NeuronManipulator(base_model,tokenizer)
 # make sure to turn these off since they will affect the results
 with open('topk/base_auxt.pkl', 'rb') as f:
     topk_base_auxt = pickle.load(f)
-with open('topk/base_maths.pkl', 'rb') as f:
+with open('topk/base_maths_sparse.pkl', 'rb') as f:
     topk_base_maths = pickle.load(f)
-with open('topk/base_physics.pkl', 'rb') as f:
+with open('topk/base_physics_sparse.pkl', 'rb') as f:
     topk_base_physics = pickle.load(f)
-with open('topk/base_philosophy.pkl', 'rb') as f:
+with open('topk/base_philosophy_sparse.pkl', 'rb') as f:
     topk_base_philosophy = pickle.load(f)
 with open('topk/base_rand.pkl', 'rb') as f:
     topk_base_rand = pickle.load(f)
@@ -309,7 +309,7 @@ topk_base = {
 
 test_ranges = [(0,3),(0,10),(0,50),(0,100),(3,10),(10,100),(0,1000)]
 
-run_rand_analysis(subset_dict= subset_dict, topk_base= topk_base, test_ranges= test_ranges)
+run_analysis(subset_dict= subset_dict, topk_base= topk_base, test_ranges= test_ranges)
 
 print("process complete")
 
