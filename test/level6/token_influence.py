@@ -108,10 +108,10 @@ with open('topk/base_rand.pkl', 'rb') as f:
 
 topk_nodes = topk_base_maths
 
-texts = ["","",""]
+texts = [""]
 texts[0] = "There are no three positive integers $a, b, c$ that satisfy the equation $a^n + b^n = c^n$ for any integer value of $n$ greater than 2."
-texts[1] = "The principle of superposition states that for linear systems, the net response caused by two or more stimuli is the sum of the responses that would have been caused by each stimulus individually."
-texts[2] = "Existentialism emphasizes individual freedom, responsibility, and the subjective experience of existence."
+# texts[0] = "The principle of superposition states that for linear systems, the net response caused by two or more stimuli is the sum of the responses that would have been caused by each stimulus individually."
+# texts[0] = "Existentialism emphasizes individual freedom, responsibility, and the subjective experience of existence."
 
 base_analyser = ActivationAnalyser(base_model, tokenizer)
 accuracy = base_analyser.get_ti(texts, topk_nodes)
