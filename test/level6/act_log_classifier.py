@@ -163,33 +163,33 @@ tokenizer.padding_side = "right"
 # make sure to turn these off since they will affect the results
 with open('topk/base_auxt.pkl', 'rb') as f:
     topk_base_auxt = pickle.load(f)
-with open('topk/base_maths_sparse.pkl', 'rb') as f:
+with open('topk/base_maths.pkl', 'rb') as f:
     topk_base_maths = pickle.load(f)
-with open('topk/base_physics_sparse.pkl', 'rb') as f:
+with open('topk/base_physics.pkl', 'rb') as f:
     topk_base_physics = pickle.load(f)
-with open('topk/base_philosophy_sparse.pkl', 'rb') as f:
+with open('topk/base_philosophy.pkl', 'rb') as f:
     topk_base_philosophy = pickle.load(f)
 with open('topk/base_rand.pkl', 'rb') as f:
     topk_base_rand = pickle.load(f)
 
-# make sure that act logs and data paths are in the same order
+# make sure that act logs and data paths are in the same order (only for s2orc)
 act_logs = (topk_base_maths, topk_base_philosophy, topk_base_physics)
 
 # loading data (s2orc)
-# data = []
-# data_class = []
-# docs = 10
-# data_paths = ["data/Mathematics,1970-2002",
-#               "data/Philosophy,1970-2022",
-#               "data/Physics,1970-1997",]
-# for i, data_path in enumerate(data_paths):
-#     dataset = load_from_disk(data_path)
-#     data = data + dataset[1000:1000 + docs]["text"]
-#     for _ in range(docs):
-#         data_class.append(i)
-# data = [{"text": text, "subject": data_class[i]} for i, text in enumerate(data)]
-# data = Dataset.from_list(data)
-# data = data.shuffle(seed=42)
+data = []
+data_class = []
+docs = 10
+data_paths = ["data/Mathematics,1970-2002",
+              "data/Philosophy,1970-2022",
+              "data/Physics,1970-1997",]
+for i, data_path in enumerate(data_paths):
+    dataset = load_from_disk(data_path)
+    data = data + dataset[1000:1000 + docs]["text"]
+    for _ in range(docs):
+        data_class.append(i)
+data = [{"text": text, "subject": data_class[i]} for i, text in enumerate(data)]
+data = Dataset.from_list(data)
+data = data.shuffle(seed=42)
 
 # loading data (mmlu)
 data_name = "cais/mmlu"

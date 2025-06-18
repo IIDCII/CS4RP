@@ -16,6 +16,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pickle
 import copy
+import heapq
 
 
 class NeuronManipulator:
@@ -32,7 +33,8 @@ class NeuronManipulator:
             if name in self.amplified_neurons:
                 mask = torch.ones_like(output)
                 for neuron_idx in self.amplified_neurons[name]:
-                    mask[:, :, neuron_idx] = self.amp_factor.get(name)
+                    mask[:, :, neuron_idx] = 0
+                    # mask[:, :, neuron_idx] = self.amp_factor.get(name)
                 return output * mask
             return output
         return hook
@@ -145,8 +147,60 @@ def adjust_topk(data, topk: int, mink=0):
     
     return result
 
+
+def get_global_topk(data, topk: int):
+    # Priority queue to store (value, (layer_name, index)) tuples
+    pq = []
+
+    # Iterate through each layer in the data
+    for layer_name, layer_data in data.items():
+        values = layer_data['values']
+        indices = layer_data['indices']
+        # Iterate through the values and indices of the current layer
+        for i, value in enumerate(values):
+            # Push the value and its corresponding layer name and index into the priority queue
+            heapq.heappush(pq, (value, (layer_name, indices[i])))
+
+    # Get the top-k values and their corresponding layer names and indices
+    topk_values_with_layer = []
+    topk_indices_with_layer = []
+    for _ in range(min(topk, len(pq))):  # Ensure we don't try to pop more than there are elements
+        value, (layer_name, index) = heapq.heappop(pq)
+        topk_values_with_layer.append((layer_name, float(value)))  # Ensure value is a float
+        topk_indices_with_layer.append((layer_name, int(index)))      # Ensure index is an int
+
+    # Reshape the output to be in the same format as the input
+    result = {}
+    
+    # Initialize a list to store the top k values
+    top_k_values = []
+    top_k_indices = []
+    
+    # Iterate through the top k values and indices
+    for i in range(len(topk_values_with_layer)):
+        top_k_values.append(topk_values_with_layer[i][1])
+        top_k_indices.append(topk_indices_with_layer[i][1])
+    
+    
+    #Populate the result dictionary
+    for layer_name in data.keys():
+        result[layer_name] = {'indices': [], 'values': []}
+        
+    
+    
+    for i in range(len(top_k_values)):
+        layer_name = topk_values_with_layer[i][0]
+        index = top_k_indices[i]
+        value = top_k_values[i]
+    
+        result[layer_name]['indices'].append(index)
+        result[layer_name]['values'].append(value)
+        
+    return result
+
+
 # analysis
-def amplify(topk_act, amp_value = 1.15):
+def amplify(topk_act, amp_value = 0):
     count = 0
     for i in range(len(topk_act)):
         count += len(list(topk_act.items())[i][1]['indices'])
@@ -156,7 +210,7 @@ def amplify(topk_act, amp_value = 1.15):
     print ("total number of neurons amplified: ", count)
 
 
-def run_analysis(subset_dict, topk_base, test_ranges, runs = 3):
+def run_analysis(subset_dict, topk_base, test_ranges, runs = 3, amp = 0):
     for name in subset_dict:
         print ("------------------------ testing on mmlu ", name)
         
@@ -166,84 +220,25 @@ def run_analysis(subset_dict, topk_base, test_ranges, runs = 3):
             dataset = load_dataset("cais/mmlu", subset, split="test")
             datasets.append(dataset)
         combined_dataset = concatenate_datasets(datasets)
-
-        # for each get the base results
-        print("base mmlu with no nodes turned off")
-        result = 0
-        for _ in range(runs):
-            manipulator = NeuronManipulator(base_model,tokenizer)
-            manipulator.reset_all_neurons()
-            result += manipulator.MMLU(combined_dataset, "test")
-        print ("avg mmlu score: ", result/runs, "\n------------")
         
         for trange in test_ranges:
-            print ("-------------------  testing on topk range k = ", trange[1], "mk = ", trange[0])
-            for i in range(2):
-                if i == 0:
-                    for topk_name in topk_base:
-                        if topk_name != "auxt":
-                            result  = 0
-                            print (topk_name ," sub auxt")
-                            for _ in range(runs):
-                                
-                                topk_act = adjust_topk(topk_base[topk_name], trange[1], mink = trange[0])
-                                topk_sub = adjust_topk(topk_base["auxt"], trange[1], mink = trange[0])
-                                topk_act = remove_common_values(topk_act,topk_sub)
+            print ("-------------------  testing on topk range k = ", trange)
+            for topk_name in topk_base:
+                if topk_name != "auxt":
+                    result  = 0
+                    print (topk_name ," sub auxt")
+                    for _ in range(runs):
+                        
+                        topk_act = get_global_topk(topk_base[topk_name], trange)
+                        topk_sub = topk_base["auxt"]
+                        topk_act = remove_common_values(topk_act,topk_sub)
 
-                                manipulator = NeuronManipulator(base_model,tokenizer)
-                                manipulator.reset_all_neurons()
-                                amplify(topk_act)
-                                
-                                result += manipulator.MMLU(combined_dataset, "test")
-                            print ("avg mmlu score: ", result/runs, "\n------------")
-                else:
-                    for topk_name in topk_base:
-                        if topk_name != "auxt" and topk_name != name:      
-                            result  = 0
-                            for _ in range(runs):
-                                print (topk_name ," sub ", name)
-                                
-                                topk_act = adjust_topk(topk_base[topk_name], trange[1], mink = trange[0])
-                                topk_sub = adjust_topk(topk_base[name], trange[1], mink = trange[0])
-                                topk_act = remove_common_values(topk_act,topk_sub)
-
-                                manipulator = NeuronManipulator(base_model,tokenizer)
-                                manipulator.reset_all_neurons()
-                                amplify(topk_act)
-                                
-                                result += manipulator.MMLU(combined_dataset, "test")
-                            print ("avg mmlu score: ", result/runs, "\n------------")
-
-
-def run_rand_analysis(subset_dict, topk_base, test_ranges, runs = 3):
-    # want to initially get the similarity to auxt so you can get a better understanding of what's going on
-
-    for name in subset_dict:
-        print ("------------------------ testing on mmlu ", name)
-        
-        # setting up the data for the test
-        datasets = []
-        for subset in subset_dict[name]:
-            dataset = load_dataset("cais/mmlu", subset, split="test")
-            datasets.append(dataset)
-        combined_dataset = concatenate_datasets(datasets)
-
-        for trange in test_ranges:
-            print ("-------------------  testing on topk range k = ", trange[1], "mk = ", trange[0])
-            result  = 0
-            for _ in range(runs):
-                print ("random")
-                
-                topk_act = adjust_topk(topk_base['rand'], trange[1], mink = trange[0])
-
-
-                manipulator = NeuronManipulator(base_model,tokenizer)
-                manipulator.reset_all_neurons()
-                amplify(topk_act)
-                
-                result += manipulator.MMLU(combined_dataset, "test")
-            print ("avg mmlu score: ", result/runs, "\n------------")
-        
+                        manipulator = NeuronManipulator(base_model,tokenizer)
+                        manipulator.reset_all_neurons()
+                        amplify(topk_act, amp)
+                        
+                        result += manipulator.MMLU(combined_dataset, "test")
+                    print ("avg mmlu score: ", result/runs, "\n------------")
 
 
 
@@ -270,7 +265,7 @@ manipulator = NeuronManipulator(base_model,tokenizer)
 # make sure to turn these off since they will affect the results
 with open('topk/base_auxt.pkl', 'rb') as f:
     topk_base_auxt = pickle.load(f)
-with open('topk/base_maths.pkl', 'rb') as f:
+with open('topk/base_maths_s5.pkl', 'rb') as f:
     topk_base_maths = pickle.load(f)
 with open('topk/base_physics.pkl', 'rb') as f:
     topk_base_physics = pickle.load(f)
@@ -290,16 +285,16 @@ subset_dict = {
 }
 
 topk_base = {
-    # "maths": topk_base_maths,
+    "maths": topk_base_maths,
     # "physics": topk_base_physics,
     # "philosophy": topk_base_philosophy,
-    # "auxt": topk_base_auxt,
-    "rand": topk_base_rand,
+    "auxt": topk_base_auxt,
+    # "rand": topk_base_rand,
 }
 
-test_ranges = [(0,3),(0,10),(0,50),(0,100),(3,10),(10,100),(0,1000)]
+test_ranges = [1000,2000,5000,10000,22557]
 
-run_analysis(subset_dict= subset_dict, topk_base= topk_base, test_ranges= test_ranges)
+run_analysis(subset_dict= subset_dict, topk_base= topk_base, test_ranges= test_ranges,runs = 3, amp= 0)
 
 print("process complete")
 
@@ -311,23 +306,24 @@ RUN ANALYSIS FOR ONE VARIATION
 # # this will act as the new model from this point
 # manipulator = NeuronManipulator(base_model,tokenizer)
 
-# k = 100
+# k = 1000
 # mk = 0
 
 # # adjust the topk
-# topk_act = adjust_topk(topk_base_philosophy, k, mink = mk)
+# topk_act = adjust_topk(topk_base_maths, k, mink = mk)
 # topk_sub = adjust_topk(topk_base_auxt, k, mink = mk)
 
+# topk_act = get_global_topk(topk_act, 1000)
 # topk_act = remove_common_values(topk_act,topk_sub)
 
-# amplify(topk_act, amp_value = 1.15)
+# amplify(topk_act, amp_value = 0)
 
 # # Define the dataset name and the subsets you want to load
 # data_name = "cais/mmlu"
 # # subset_names = ["high_school_physics", "college_physics"] # physics
 # # subset_names = ["high_school_mathematics", "college_mathematics","elementary_mathematics","abstract_algebra","professional_accounting"] # maths
-# # subset_names = ["high_school_mathematics"] # maths
-# subset_names = ["philosophy"] # philosophy
+# subset_names = ["high_school_mathematics"] # maths
+# # subset_names = ["philosophy"] # philosophy
 
 # # Load and concatenate the subsets
 # datasets = []
