@@ -4,7 +4,7 @@ act log 5 but getting the average based on the activations but based on all of t
 
 import os
 # set the GPUs
-os.environ["CUDA_VISIBLE_DEVICES"] = "3,7"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0,3"
 # setting for vllm inference so that it can run in parallel
 os.environ["VLLM_WORKER_MULTIPROC_METHOD"] = "spawn"
 
@@ -145,7 +145,7 @@ tokenizer.padding_side = "right"
 # dataset = load_data(name = "cais/mmlu", subset_name = "auxiliary_train", data_range = 1000, data_type = "train")
 
 # loading the data
-data_path = "data/Medicine,1970-2006"
+data_path = "data/Economics,1970-2016"
 dataset = load_from_disk(data_path)
 dataset = dataset[:1000]["text"]
 dataset = [{"text": text} for text in dataset]
@@ -160,10 +160,10 @@ bf = base_analyser.analyze_text(dataset, top_k=1000, data_type = "test")
 
 # store all of the results
 # make sure the file name is correct
-with open('topk/medicine.pkl', 'wb') as f:
+with open('topk/economics.pkl', 'wb') as f:
     pickle.dump(bf, f)
 
-with open('topk/medicine.pkl', 'rb') as f:
+with open('topk/economics.pkl', 'rb') as f:
     loaded_dict = pickle.load(f)
 
 print ("process complete")
