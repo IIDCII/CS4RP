@@ -4,7 +4,7 @@
 import os
 from re import sub
 # set the GPUs
-os.environ["CUDA_VISIBLE_DEVICES"] = "3"
+os.environ["CUDA_VISIBLE_DEVICES"] = "0,3"
 # setting for vllm inference so that it can run in parallel
 os.environ["VLLM_WORKER_MULTIPROC_METHOD"] = "spawn"
 
@@ -293,65 +293,62 @@ with open('topk/base_rand.pkl', 'rb') as f:
 """
 RUN ANALYSIS FOR EVERY VARIATION
 """
-subset_dict = {
-    "physics": ["high_school_physics", "college_physics"],
-    "maths": ["high_school_mathematics","college_mathematics","elementary_mathematics","abstract_algebra","professional_accounting"],
-    "philosophy": ["philosophy"],
-}
+# subset_dict = {
+#     "physics": ["high_school_physics", "college_physics"],
+#     "maths": ["high_school_mathematics","college_mathematics","elementary_mathematics","abstract_algebra","professional_accounting"],
+#     "philosophy": ["philosophy"],
+# }
 
-topk_base = {
-    "maths": topk_base_maths,
-    "physics": topk_base_physics,
-    "philosophy": topk_base_philosophy,
-    "auxt": topk_base_auxt,
-    "rand": topk_base_rand,
-}
+# topk_base = {
+#     "maths": topk_base_maths,
+#     "physics": topk_base_physics,
+#     "philosophy": topk_base_philosophy,
+#     "auxt": topk_base_auxt,
+#     "rand": topk_base_rand,
+# }
 
-test_ranges = [(0,3),(0,10),(0,50),(0,100),(3,10),(10,100),(0,1000)]
+# test_ranges = [(0,3),(0,10),(0,50),(0,100),(3,10),(10,100),(0,1000)]
 
-run_analysis(subset_dict= subset_dict, topk_base= topk_base, test_ranges= test_ranges)
+# run_analysis(subset_dict= subset_dict, topk_base= topk_base, test_ranges= test_ranges)
 
-print("process complete")
+# print("process complete")
 
 
 """
 RUN ANALYSIS FOR ONE VARIATION
 """
 
-# # # this will act as the new model from this point
-# # manipulator = NeuronManipulator(base_model,tokenizer)
+k = 10
+mk = 0
 
-# k = 10
-# mk = 0
+# adjust the topk
+topk_act = adjust_topk(topk_base_maths, k, mink = mk)
+topk_sub = adjust_topk(topk_base_philosophy, k, mink = mk)
+# topk_sub2 = adjust_topk(topk_base_maths, k, mink = mk)
 
-# # adjust the topk
-# topk_act = adjust_topk(topk_base_maths, k, mink = mk)
-# topk_sub = adjust_topk(topk_base_philosophy, k, mink = mk)
-# # topk_sub2 = adjust_topk(topk_base_maths, k, mink = mk)
+topk_act = remove_common_values(topk_act,topk_sub)
+# topk_act = remove_common_values(topk_act,topk_sub2)
 
-# topk_act = remove_common_values(topk_act,topk_sub)
-# # topk_act = remove_common_values(topk_act,topk_sub2)
+disable(topk_act)
 
-# disable(topk_act)
+# Define the dataset name and the subsets you want to load
+data_name = "cais/mmlu"
+# subset_names = ["high_school_physics", "college_physics"] # physics
+# subset_names = ["high_school_mathematics", "college_mathematics","elementary_mathematics","abstract_algebra","professional_accounting"] # maths
+# subset_names = ["high_school_mathematics"] # maths
+subset_names = ["philosophy"] # philosophy
 
-# # Define the dataset name and the subsets you want to load
-# data_name = "cais/mmlu"
-# # subset_names = ["high_school_physics", "college_physics"] # physics
-# # subset_names = ["high_school_mathematics", "college_mathematics","elementary_mathematics","abstract_algebra","professional_accounting"] # maths
-# # subset_names = ["high_school_mathematics"] # maths
-# subset_names = ["philosophy"] # philosophy
+# Load and concatenate the subsets
+datasets = []
+for subset_name in subset_names:
+    dataset = load_dataset(data_name, subset_name, split="test")
+    datasets.append(dataset)
 
-# # Load and concatenate the subsets
-# datasets = []
-# for subset_name in subset_names:
-#     dataset = load_dataset(data_name, subset_name, split="test")
-#     datasets.append(dataset)
+# Combine all subsets into a single dataset
+combined_dataset = concatenate_datasets(datasets)
 
-# # Combine all subsets into a single dataset
-# combined_dataset = concatenate_datasets(datasets)
+manipulator.MMLU(combined_dataset, "test")
 
-# manipulator.MMLU(combined_dataset, "test")
+manipulator.reset_all_neurons()
 
-# manipulator.reset_all_neurons()
-
-# print ("single process complete")
+print ("single process complete")
